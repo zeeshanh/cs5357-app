@@ -96,7 +96,7 @@ class FormScreen extends React.Component {
                 <View style={styles.containerTop}>
                     <View style={styles.grayHeader}>
                         <Text style={styles.h1}>What do you need help with today?</Text>
-                        <Text style={{height: 20, width: "90%", margin:10}}>Enter your details and we'll find you a mover!</Text>
+                        <Text style={{height: 20, width: "90%", margin:10}}>Enter your details and we&#8217;ll find you a mover!</Text>
                     </View>
                     <TextInput
                         style={styles.input}
