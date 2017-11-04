@@ -297,7 +297,7 @@ class MoverDetailScreen extends React.Component {
                     >Offer Accepted!</Text>
                     <Text
                         style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:16, textAlign: 'center', color: "#666"}}
-                    >Don't forget to contact {this.state.data.name.split(" ")[0]} to confirm details and be sure to pay when the job is done!</Text>
+                    >Don&#8217;t forget to contact {this.state.data.name.split(" ")[0]} to confirm details and be sure to pay when the job is done!</Text>
                     <Button
                         onPress={() => navigate("Review") }
                         title="Job Done? Leave a Review!"
