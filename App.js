@@ -1,6 +1,181 @@
 import React, { Component } from 'react';
-import { Button, StyleSheet, Text, TextInput, ScrollView, View, Alert, FlatList, Image, TouchableHighlight} from 'react-native';
+import { Button, StyleSheet, Text, TextInput, ScrollView, View, Alert, FlatList, Image, TouchableHighlight, TouchableOpacity} from 'react-native';
 import { StackNavigator } from 'react-navigation';
+import DateTimePicker from 'react-native-modal-datetime-picker';
+
+var userType; // either mover or requester
+
+class InitialOptionScreen extends React.Component {
+
+    static navigationOptions = {
+        header: null
+    };
+
+    render() {
+
+        const { navigate } = this.props.navigation;
+
+        const validatePhone = () => {
+            // TODO: validate phone number
+            return true;
+        };
+
+        return (
+            // Nothing is styled yet 😣
+            <View style={styles.container}>
+                <Text
+                    style={{fontSize:30, color: "#666"}}
+                >Man With A Van</Text>
+                <Text>Mover</Text>
+                <Button
+                    onPress={() => {
+                        userType = 'mover';
+                        navigate('Register');
+                    }}
+                    title="Register"
+                    color="#00796B"
+                />
+                    <Button
+                    onPress={() => {
+                        userType = 'mover';
+                        navigate('Login');
+                    }}
+                    title="Login"
+                    color="#00796B"
+                />
+                <Text>Requester</Text>
+                <Button
+                    onPress={() => {
+                        userType = 'requester';
+                        navigate('Register');
+                    }}
+                    title="Register"
+                    color="#00796B"
+                />
+                    <Button
+                    onPress={() => {
+                        userType = 'requester';
+                        navigate('Login');
+                    }}
+                    title="Login"
+                    color="#00796B"
+                />
+            </View>
+        );
+    }
+}
+
+class RegisterScreen extends React.Component {
+
+    static navigationOptions = {
+        header: null
+    };
+
+    render() {
+        const { navigate } = this.props.navigation;
+        const isMover = userType == 'mover' ? true : false;
+
+        const submitForm = () => {
+            // TODO: Validate form and submit
+            return true;
+        };
+
+        return (
+            <ScrollView>
+                <View style={styles.containerTop}>
+                    <View style={styles.grayHeader}>
+                        <Text style={styles.h1}>Register as {userType}</Text>
+                    </View>
+                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
+                        <TextInput
+                            style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}
+                            placeholder="First Name"
+                        />
+                        <TextInput
+                            style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}
+                            placeholder="Last Name"
+                        />
+                    </View>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Username"
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Password"
+                    />
+                    <TextInput
+                        style={[styles.input, {display: isMover ? 'flex' : 'none'}]}
+                        placeholder="Zip Code"
+                    />
+                    <TextInput
+                        style={[styles.input, {display: isMover ? 'flex' : 'none'}]}
+                        placeholder="Vehicle Type"
+                    />
+                    <TextInput
+                        style={[styles.input, {display: isMover ? 'flex' : 'none'}]}
+                        placeholder="Payment Types Accepted"
+                    />
+                    <Text style={{height: 40, width: "90%", margin:10}}>📷 Upload Profile Photo</Text>
+                    <View style={styles.grayFooter}>
+                        <Button
+                            onPress={() => submitForm() ? navigate('GetCode') : false}
+                            title="Create Account"
+                            color="#00796B"
+                        />
+                    </View>
+                </View>
+            </ScrollView>
+        );
+    }
+}
+
+class LoginScreen extends React.Component {
+
+    static navigationOptions = {
+        header: null
+    };
+
+    render() {
+
+        const { navigate } = this.props.navigation;
+
+        const validateLogin = () => {
+            // TODO: validate login credentials
+            return true;
+        };
+
+        return (
+            <View style={styles.container}>
+                <Text
+                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
+                >Welcome back!</Text>
+                <Text
+                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
+                >Login as {userType}</Text>
+                <TextInput
+                    style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
+                    placeholder="Username"
+                />
+                <TextInput
+                    style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
+                    placeholder="Password"
+                />
+                <Button
+                    onPress={() => {
+                        if (userType == 'requester' && validateLogin) {
+                            navigate('RequestForm');
+                        } else if (userType == 'mover' && validateLogin){
+                            navigate('AllJobsScreen');
+                        }
+                    }}
+                    title="Log In"
+                    color="#00796B"
+                />
+            </View>
+        );
+    }
+}
 
 class GetCodeScreen extends React.Component {
 
@@ -20,21 +195,37 @@ class GetCodeScreen extends React.Component {
         return (
             <View style={styles.container}>
                 <Text
-                    style={{fontSize:30, color: "#666"}}
-                >Man With A Van</Text>
+                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
+                >Welcome to Man With A Van</Text>
+                <Text
+                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
+                >Please Validate Your Phone Number</Text>
                 <TextInput
                     style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
                     placeholder="Enter Phone Number"
                 />
                 <Button
-                    onPress={() => validatePhone ? navigate('EnterCode') : false}
-                    title="Get Code"
+                    onPress={() => validatePhone ? navigate('EnterCode', {'userType': userType}) : false}
+                    title="Get Validation Code"
                     color="#00796B"
+                />
+                <Button
+                    onPress={() => {
+                        if (userType == 'requester') {
+                            navigate('RequestForm');
+                        } else {
+                            navigate('AllJobsScreen');
+                        }
+                    }}
+                    title="I'll Do This Later"
+                    color="#666"
                 />
             </View>
         );
     }
 }
+
+
 
 class EnterCodeScreen extends React.Component {
 
@@ -53,14 +244,21 @@ class EnterCodeScreen extends React.Component {
         return (
             <View style={styles.container}>
                 <Text
-                    style={{fontSize:30, color: "#666"}}
-                >Man With A Van</Text>
+                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
+                >Welcome to Man With A Van</Text>
+                <Text
+                    style={{color: "#666", textAlign: 'center', width: '80%'}}
+                >We have sent you a code via text message. Please enter it below.</Text>
                 <TextInput
                     style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
                     placeholder="Enter Code"
                 />
                 <Button
-                    onPress={() => validateCode ? navigate('Form') : false}
+                    onPress={() => {
+                        if (userType == 'requester' && validateCode) {
+                            navigate('RequestForm');
+                        }
+                    }}
                     title="Join"
                     color="#00796B"
                 />
@@ -69,60 +267,116 @@ class EnterCodeScreen extends React.Component {
     }
 }
 
-class FormScreen extends React.Component {
+class RequestFormScreen extends React.Component {
 
     static navigationOptions = {
         header: null
     };
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            startAddress: '',
+            endAddress: '',
+            startTime: '',
+            endTime: '',
+            maximumPrice: '',
+            description: '',
+            timePickerVisible: false,
+            activeField: null
+        };
+    }
+
     render() {
         const { navigate } = this.props.navigation;
 
         const validateForm = () => {
-            // TODO: validate form
-            Alert.alert(
-                'Please Wait',
-                'Looking for movers near you. We\'ll let you know when someone accepts your job.',
-                [
-                    {text: 'Cancel Request'},
-                ],
-                { cancelable: true }
-            );
-            return true;
+            var errors = "";
+
+            if (this.state.startAddress.length == 0) {
+                errors += "Start address cannot be empty\n";
+            }
+
+            if (this.state.endAddress.length == 0) {
+                errors += "End address cannot be empty\n";
+            }
+
+            if (this.state.startTime.length == 0) {
+                errors += "Start time cannot be empty\n";
+            }
+
+            if (this.state.endTime.length == 0) {
+                errors += "End time cannot be empty\n";
+            }
+
+            if (this.state.maximumPrice.length == 0) {
+                errors += "Maximum price cannot be empty\n";
+            } else if (!(/^\$?\d{1,10}(?:\.\d{1,4})?$/.test(this.state.maximumPrice))) {
+                errors += "Maximum price is not a valid price format\n";
+            }
+
+            if (this.state.description.length == 0) {
+                errors += "Description cannot be empty\n";
+            }
+
+            if (errors) {
+                alert("Please fix these errors:\n\n" + errors);
+            } else {
+                return true;
+            }
         };
 
         return (
             <ScrollView>
+                <DateTimePicker
+                    mode="time"
+                    isVisible={this.state.timePickerVisible}
+                    onConfirm={() => {
+                        // TODO: record the selected time
+                        this.setState({timePickerVisible: false});
+                    }}
+                    onCancel={() => {
+                        this.setState({timePickerVisible: false});
+                    }}
+                />
                 <View style={styles.containerTop}>
                     <View style={styles.grayHeader}>
                         <Text style={styles.h1}>What do you need help with today?</Text>
-                        <Text style={{height: 20, width: "90%", margin:10}}>Enter your details and we&#8217;ll find you a mover!</Text>
+                        <Text style={{height: 20, width: "90%", margin:10}}>Describe the job and we&#8217;ll find you a mover!</Text>
                     </View>
                     <TextInput
                         style={styles.input}
                         placeholder="Start Address"
+                        onChangeText={(text) => this.setState({startAddress: text})}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="End Address"
+                        onChangeText={(text) => this.setState({endAddress: text})}
                     />
                     <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
                         <TextInput
                             style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}
                             placeholder="Start Time"
+                            onFocus={() => this.setState({timePickerVisible: true, activeField: "startTime"})}
+                            onChangeText={(text) => this.setState({startTime: text})}
                         />
                         <TextInput
                             style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}
                             placeholder="End Time"
+                            onFocus={() => this.setState({timePickerVisible: true, activeField: "endTime"})}
+                            onChangeText={(text) => this.setState({endTime: text})}
                         />
                     </View>
                     <TextInput
                         style={styles.input}
                         placeholder="Maximum Price"
+                        onChangeText={(text) => this.setState({maximumPrice: text})}
                     />
                     <TextInput
                         style={styles.input}
                         placeholder="Describe the job"
+                        onChangeText={(text) => this.setState({description: text})}
                     />
                     <Text style={{height: 40, width: "90%", margin:10}}>📷 Upload Photos</Text>
                     <View style={styles.grayFooter}>
@@ -420,9 +674,12 @@ class ReviewScreen extends React.Component {
 
 
 const App = StackNavigator({
+    InitialOptions: { screen: InitialOptionScreen },
+    Register: { screen: RegisterScreen },
+    Login: { screen: LoginScreen },
     GetCode: { screen: GetCodeScreen },
     EnterCode: { screen: EnterCodeScreen },
-    Form: { screen: FormScreen },
+    RequestForm: { screen: RequestFormScreen },
     MoverList: { screen: MoverListScreen},
     MoverDetail: { screen: MoverDetailScreen},
     Review: { screen: ReviewScreen },
