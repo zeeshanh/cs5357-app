@@ -5,6 +5,7 @@ import DateTimePicker from 'react-native-modal-datetime-picker';
 
 var userType; // either mover or requester
 
+// Register/login
 class InitialOptionScreen extends React.Component {
 
     static navigationOptions = {
@@ -166,7 +167,7 @@ class LoginScreen extends React.Component {
                         if (userType == 'requester' && validateLogin) {
                             navigate('Requester');
                         } else if (userType == 'mover' && validateLogin){
-                            navigate('AllJobsScreen');
+                            navigate('Mover');
                         }
                     }}
                     title="Log In"
@@ -214,7 +215,7 @@ class GetCodeScreen extends React.Component {
                         if (userType == 'requester') {
                             navigate('Requester');
                         } else {
-                            navigate('AllJobsScreen');
+                            navigate('Mover');
                         }
                     }}
                     title="I'll Do This Later"
@@ -255,6 +256,8 @@ class EnterCodeScreen extends React.Component {
                     onPress={() => {
                         if (userType == 'requester' && validateCode) {
                             navigate('Requester');
+                        } else if (validateCode) {
+                            navigate('Mover');
                         }
                     }}
                     title="Join"
@@ -265,7 +268,7 @@ class EnterCodeScreen extends React.Component {
     }
 }
 
-
+// Requester Screens
 class RequestFormScreen extends React.Component {
 
     static navigationOptions = {
@@ -484,7 +487,6 @@ class MoverListScreen extends React.Component {
 
 MoverListScreen.router = MoverList.router; // Nested navigator: https://reactnavigation.org/docs/intro/nesting
 
-
 class MoverDetailScreen extends React.Component {
 
     static navigationOptions = {
@@ -670,6 +672,274 @@ class ReviewScreen extends React.Component {
     }
 }
 
+class ProfileScreen extends React.Component {
+    static navigationOptions = {
+        tabBarLabel: 'Profile',
+    };
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            phoneValidated: false
+        }
+    }
+
+    render() {
+        const { navigate } = this.props.navigation;
+        const isMover = userType == 'mover' ? true : false;
+
+        const submitForm = () => {
+            // TODO: Validate form and submit
+            return true;
+        };
+
+        return (
+            <ScrollView>
+                <View style={styles.containerTop}>
+                    <View style={styles.grayHeader}>
+                        <Text style={styles.h1}>Update Profile</Text>
+                    </View>
+                    <Text
+                        style={{display: this.state.phoneValidated ? 'none' : 'flex'}}
+                        onPress={() => navigate('GetCode')}
+                    >Phone not yet validated. Tap here to validate phone</Text>
+                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
+                        <TextInput
+                            style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}
+                            placeholder="First Name"
+                        />
+                        <TextInput
+                            style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}
+                            placeholder="Last Name"
+                        />
+                    </View>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Username"
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Password"
+                    />
+                    <TextInput
+                        style={[styles.input, {display: isMover ? 'flex' : 'none'}]}
+                        placeholder="Zip Code"
+                    />
+                    <TextInput
+                        style={[styles.input, {display: isMover ? 'flex' : 'none'}]}
+                        placeholder="Vehicle Type"
+                    />
+                    <TextInput
+                        style={[styles.input, {display: isMover ? 'flex' : 'none'}]}
+                        placeholder="Payment Types Accepted"
+                    />
+                    <Text style={{height: 40, width: "90%", margin:10}}>📷 Upload New Profile Photo</Text>
+                    <View style={styles.grayFooter}>
+                        <Button
+                            onPress={() => submitForm() ? navigate('Requester') : false}
+                            title="Save Changes"
+                            color="#00796B"
+                        />
+                        <Text
+                            onPress={() => {
+                                if (userType == "requester") {
+                                    navigate('Requester');
+                                } else {
+                                    navigate("JobList");
+                                }
+                            }}
+                        >Cancel</Text>
+                    </View>
+                </View>
+            </ScrollView>);
+    }
+}
+
+// Mover Screens
+class JobList extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            data: [ // Hardcoded for now
+                { key: 0, values: {
+                    "id": 0,
+                    "description": "Moving some stuff",
+                    "maxPrice": 1,
+                    "startAddress": "[start addr]",
+                    "endAddress": "[end addr]",
+                    "startTime": "1pm",
+                    "endTime": "6pm",
+                    "photo": require("./img/boxes.jpg"),
+                    }
+                },
+                { key: 1, values: {
+                    "id": 0,
+                    "description": "Another job",
+                    "maxPrice": 1,
+                    "startAddress": "[start addr]",
+                    "endAddress": "[end addr]",
+                    "startTime": "1pm",
+                    "endTime": "6pm",
+                    "photo": require("./img/boxes.jpg"),
+                    }
+                },
+            ]
+        }
+    }
+
+    render() {
+
+        return(
+            <View style={styles.containerTop}>
+
+            <View style={styles.grayHeader}>
+                <Text style={styles.h1}>{this.state.data.length} jobs are available{this.state.data.length > 0 ? "!" : " :("}</Text>
+            </View>
+
+            <FlatList
+                data={this.state.data}
+                style={{width: "100%"}}
+
+                renderItem={({item}) => (
+                    <View
+                        style={{padding: 20, flexDirection: "row", justifyContent: "space-between"}}
+                    >
+                        <Image source={item.values.photo} style={{maxWidth: 80, maxHeight: 60}}/>
+                        <View style={{marginRight: 10}}>
+                        <Text style={{fontSize: 16, fontWeight: "bold", color: "#333"}}>{item.values.description}</Text>
+                            <Text>Max ${item.values.maxPrice} | Start at {item.values.startTime}</Text>
+                        </View>
+                        <Text
+                            onPress={() => this.props.navigation.navigate("JobDetail", {jobInfo: item.values})}
+                            style={{fontWeight: "bold", color: "#00796B"}}
+                        >
+                            Details
+                        </Text>
+                    </View>
+                )}
+            />
+                <View style={styles.grayFooter}>
+                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
+                        <Text style={{height: 40, margin:10}}>Refresh List</Text>
+                        <Text style={{height: 40, margin:10}}>Sort</Text>
+                    </View>
+                </View>
+
+             </View>
+        );
+    }
+}
+
+class JobListScreen extends React.Component {
+    static navigationOptions = {
+        header: null
+    };
+
+    render() {
+
+        return (
+            <ScrollView>
+                <JobList navigation={this.props.navigation} />
+            </ScrollView>
+        );
+    }
+}
+
+JobListScreen.router = JobList.router; // Nested navigator: https://reactnavigation.org/docs/intro/nesting
+
+class JobDetailScreen extends React.Component {
+
+    static navigationOptions = {
+        header: null
+    };
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            data: this.props.navigation.state.params.jobInfo,
+            preAccept: "flex",
+            postAccept: "none"
+        }
+    }
+
+    static navigationOptions = {
+        header: null
+    };
+
+    render() {
+        const { navigate } = this.props.navigation;
+
+        const placeOffer = () => {
+            this.setState({preAccept: "none", postAccept: "flex"});
+        };
+
+        return (
+            <ScrollView>
+            <View style={{flex: 1, justifyContent: "space-between", marginTop: 40}}>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff"}}>
+
+                    <Text style={{
+                        height: 30,
+                        width: "90%",
+                        margin:10,
+                        fontSize:20,
+                        color: "#666",
+                    }}>{this.state.data.description}</Text>
+
+                    <View style={{flex:0, flexDirection: "row", width: "90%", padding: 10, borderBottomWidth: 1, borderBottomColor: "#999"}}>
+                        <View style={{width: "50%"}}>
+                            <Text>Max Price: ${this.state.data.maxPrice}</Text>
+                        </View>
+                        <View>
+                            <Text>Other offers: $x - $y</Text>
+                        </View>
+                    </View>
+
+                    <View style={{flex:0, flexDirection: "row", width: "90%",  padding: 10, borderBottomWidth: 1, borderBottomColor: "#999"}}>
+                        <View style={{width: "50%"}}>
+                            <Text>Start time: {this.state.data.startTime}</Text>
+                            <Text>End time: {this.state.data.endTime}</Text>
+                        </View>
+                        <View>
+                            <Text>Start address: {this.state.data.startAddress}</Text>
+                            <Text>End address: {this.state.data.endAddress}</Text>
+                        </View>
+                    </View>
+
+                    <Image source={this.state.data.photo} style={{margin: 50, width: "90%", height:100}}/>
+
+                </View>
+
+                <View style={[styles.grayFooter, {display: this.state.preAccept}]}>
+                    <TextInput placeholder="Amount" />
+                    <TextInput placeholder="Start Time" />
+                    <Button
+                        onPress={() => placeOffer() }
+                        title="Place Offer"
+                        color="#00796B"
+                    />
+                    <Text
+                        style={{margin:30, fontSize:16, color: "#666"}}
+                        onPress={() => navigate("JobList")}
+                    >View Other Offers</Text>
+                </View>
+
+                <View style={[styles.grayFooter, {display: this.state.postAccept}]}>
+                    <Text
+                        style={{margin:10, fontWeight: "bold", fontSize:30, color: "#00796B"}}
+                    >Offer placed!</Text>
+                    <Text
+                        style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:16, textAlign: 'center', color: "#666"}}
+                    >We'll let you know if the requester accepts your offer.</Text>
+                </View>
+            </View>
+            </ScrollView>
+        );
+    }
+}
+
+
 
 const App = StackNavigator({
     InitialOptions: { screen: InitialOptionScreen },
@@ -679,23 +949,34 @@ const App = StackNavigator({
     EnterCode: { screen: EnterCodeScreen },
     Requester: { screen: TabNavigator({
         RequestForm: { screen: RequestFormScreen },
+        Profile: { screen: ProfileScreen },
         Movers: { screen: StackNavigator({
             MoverList: { screen: MoverListScreen },
             ViewMover: { screen: MoverDetailScreen},
             Review: { screen: ReviewScreen },
         }), navigationOptions: ({ navigation }) => ({
             header: null,
-        }), },
+        }),
+    }
     }), navigationOptions: ({ navigation }) => ({
-        header: null,
-    }),
+            header: null,
+        }),
     },
+    Mover: { screen: TabNavigator({
+        Profile: { screen: ProfileScreen },
+        Jobs: { screen: StackNavigator({
+            JobList: { screen: JobListScreen },
+            JobDetail: { screen: JobDetailScreen},
+        }), navigationOptions: ({ navigation }) => ({
+            header: null,
+        }),
+    }
+    }), navigationOptions: ({ navigation }) => ({
+            header: null,
+        }),
     },
-    {
-        headerMode: 'screen'
-    });
 
-
+});
 
 const styles = StyleSheet.create({
     //https://material.io/guidelines/style/color.html#color-color-palette
