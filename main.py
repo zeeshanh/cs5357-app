@@ -6,7 +6,7 @@ from flask_pymongo import PyMongo
 from pymongo.errors import DuplicateKeyError
 from werkzeug import security
 from werkzeug.exceptions import BadRequest, NotFound, UnsupportedMediaType, Unauthorized
-
+from authy.api import AuthyApiClient
 from exceptions import JSONExceptionHandler
 
 # This defines a Flask application
@@ -18,10 +18,56 @@ JSONExceptionHandler(app)
 
 # We configure the app object
 app.config['MONGO_DBNAME'] = 'moving_database'
-app.secret_key = 'A0Zr98j/3yX R~XHH!!!jmN]LWX/,?RT'
+app.secret_key = 'A0Zr98j/3yX R~XHH!!!jmN]LWX/,?RT2341'
 
 # This initializes PyMongo and makes `mongo` available
 mongo = PyMongo(app)
+authy_api = AuthyApiClient('nhC1DZj2WEeGhKqqi1NNvcIrEHAL30W9')
+
+@app.route('/addPhone', methods = ['POST'])
+def addPhone():
+    # if session.get('user') is None:
+    #     raise Unauthorized()
+
+    body = request.get_json()
+    if body.get('number') is None:
+        raise BadRequest('missing phone number')
+
+    number = body.get('number')
+    resp =authy_api.phones.verification_start(number, 1, via='sms')
+    
+
+    if resp.content["success"]:
+        #Add number to database record
+        return Response(200)
+    else:
+        return Response("Invalid number",400)
+
+@app.route('/verify', methods = ['POST'])
+def verifyCode():
+    #if session.get('user') is None:
+    #     raise Unauthorized()
+
+    body = request.get_json()
+    if body.get('code') is None:
+        raise BadRequest('missing verification code')
+
+    code = body.get('code')
+
+    #Get number from database instead
+    #user = mongo.db.users.find_one({'username': "zee"})
+    #number = user["number"]
+    number = "9174766772"
+
+    resp = authy_api.phones.verification_check(number, 1, code)
+
+    if resp.content["success"]:
+        return Response(200)
+
+    else:
+        #Either code is wrong or has expired
+        return Response(401)
+
 
 
 @app.route('/logout')
