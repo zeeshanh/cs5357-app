@@ -219,7 +219,7 @@ class GetCodeScreen extends React.Component {
                         }
                     }}
                     style={[styles.bigButton, {backgroundColor: "#666"}]}
-                ><Text style={{color: "#fff", fontSize: 20}}>I'll Do This Later</Text></TouchableOpacity>
+                ><Text style={{color: "#fff", fontSize: 20}}>I&apos;ll Do This Later</Text></TouchableOpacity>
 
             </View>
         );
