@@ -1,0 +1,57 @@
+/signup: POST
+	type : str
+	First Name : str
+	Last Name : str
+	username : str
+	password
+	zip code
+	vehicle
+	photo
+
+/login: POST
+	username:
+	password:
+	type:
+
+/logout: POST
+
+/addphone: POST
+	number: str
+
+/verify: POST
+	code: str
+
+/jobs: POST
+	start:
+	end:
+	timestart:
+	endtime:
+	max price:
+
+/jobs: GET
+	return all open jobs
+
+/getJob: GET (jobID) (optional)
+	return job details
+
+/addOffer: POST 
+	jobId:
+	price:
+	startTime:
+
+/getProfile:GET 
+	
+/updateProfile: POST
+
+/acceptOffer: POST
+	jobID
+	offerID
+
+/review: POST
+	moverID:
+	rating:
+
+
+
+
+
