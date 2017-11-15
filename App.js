@@ -4,6 +4,7 @@ import { StackNavigator, TabNavigator, TabView} from 'react-navigation';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 
 var userType; // either mover or requester
+var validatedPhone = false;
 
 // Register/login
 class InitialOptionScreen extends React.Component {
@@ -27,40 +28,42 @@ class InitialOptionScreen extends React.Component {
                 <Text
                     style={{fontSize:30, color: "#666"}}
                 >Man With A Van</Text>
-                <Text>Mover</Text>
-                <Button
-                    onPress={() => {
-                        userType = 'mover';
-                        navigate('Register');
-                    }}
-                    title="Register"
-                    color="#00796B"
-                />
-                    <Button
+                <TouchableOpacity
                     onPress={() => {
                         userType = 'mover';
                         navigate('Login');
                     }}
-                    title="Login"
-                    color="#00796B"
-                />
-                <Text>Requester</Text>
-                <Button
-                    onPress={() => {
-                        userType = 'requester';
-                        navigate('Register');
-                    }}
-                    title="Register"
-                    color="#00796B"
-                />
-                    <Button
+                    style={styles.bigButton}
+                >
+                    <Text style={{color: "#fff", fontSize: 20}}>Login as Mover</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
                     onPress={() => {
                         userType = 'requester';
                         navigate('Login');
                     }}
-                    title="Login"
-                    color="#00796B"
-                />
+                    style={styles.bigButton}
+                >
+                    <Text style={{color: "#fff", fontSize: 20}}>Login as Requester</Text>
+                </TouchableOpacity>
+
+                    <Text
+                    onPress={() => {
+                        userType = 'mover';
+                        navigate('Register');
+                    }}
+                    style={{margin: 5}}
+                    >Register as Mover</Text>
+
+                    <Text
+                    onPress={() => {
+                        userType = 'requester';
+                        navigate('Register');
+                    }}
+                    style={{margin: 5}}
+                    >Register as Requester</Text>
+
             </View>
         );
     }
@@ -149,20 +152,20 @@ class LoginScreen extends React.Component {
         return (
             <View style={styles.container}>
                 <Text
-                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
+                    style={{fontSize:30, color: "#666", textAlign: 'center', margin: 10}}
                 >Welcome back!</Text>
                 <Text
-                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
+                    style={{fontSize:20, color: "#666", textAlign: 'center',  margin: 10}}
                 >Login as {userType}</Text>
                 <TextInput
-                    style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
+                    style={{height: 40, width: 200, margin:10, width: "90%", textAlign: 'center'}}
                     placeholder="Username"
                 />
                 <TextInput
-                    style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
+                    style={{height: 40, width: 200, margin:10, width: "90%", textAlign: 'center'}}
                     placeholder="Password"
                 />
-                <Button
+                <TouchableOpacity
                     onPress={() => {
                         if (userType == 'requester' && validateLogin) {
                             navigate('Requester');
@@ -170,9 +173,8 @@ class LoginScreen extends React.Component {
                             navigate('Mover');
                         }
                     }}
-                    title="Log In"
-                    color="#00796B"
-                />
+                    style={styles.bigButton}
+                ><Text style={{color: "#fff", fontSize: 20}}>Log In</Text></TouchableOpacity>
             </View>
         );
     }
@@ -196,21 +198,19 @@ class GetCodeScreen extends React.Component {
         return (
             <View style={styles.container}>
                 <Text
-                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
-                >Welcome to Man With A Van</Text>
-                <Text
-                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
-                >Please Validate Your Phone Number</Text>
+                    style={{fontSize:20, color: "#666", textAlign: 'center', margin: 10}}
+                >Please validate your phone number</Text>
+
                 <TextInput
                     style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
                     placeholder="Enter Phone Number"
                 />
-                <Button
-                    onPress={() => validatePhone ? navigate('EnterCode', {'userType': userType}) : false}
-                    title="Get Validation Code"
-                    color="#00796B"
-                />
-                <Button
+                <TouchableOpacity
+                    onPress={() => validatePhone ? navigate('EnterCode') : false}
+                    style={styles.bigButton}
+                ><Text style={{color: "#fff", fontSize: 20}}>Get Code</Text></TouchableOpacity>
+
+                <TouchableOpacity
                     onPress={() => {
                         if (userType == 'requester') {
                             navigate('Requester');
@@ -218,9 +218,9 @@ class GetCodeScreen extends React.Component {
                             navigate('Mover');
                         }
                     }}
-                    title="I'll Do This Later"
-                    color="#666"
-                />
+                    style={[styles.bigButton, {backgroundColor: "#666"}]}
+                ><Text style={{color: "#fff", fontSize: 20}}>I'll Do This Later</Text></TouchableOpacity>
+
             </View>
         );
     }
@@ -243,26 +243,28 @@ class EnterCodeScreen extends React.Component {
         return (
             <View style={styles.container}>
                 <Text
-                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
-                >Welcome to Man With A Van</Text>
+                    style={{fontSize:30, color: "#666", textAlign: 'center', margin: 10}}
+                >Thanks for entering your phone.</Text>
                 <Text
-                    style={{color: "#666", textAlign: 'center', width: '80%'}}
-                >We have sent you a code via text message. Please enter it below.</Text>
+                    style={{fontSize:20, color: "#666", textAlign: 'center',  margin: 10}}
+                >We have sent you a validation code. Please enter it below.</Text>
                 <TextInput
                     style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
                     placeholder="Enter Code"
                 />
-                <Button
+
+                <TouchableOpacity
                     onPress={() => {
                         if (userType == 'requester' && validateCode) {
+                            validatedPhone = true;
                             navigate('Requester');
                         } else if (validateCode) {
+                            validatedPhone = true;
                             navigate('Mover');
                         }
                     }}
-                    title="Join"
-                    color="#00796B"
-                />
+                    style={styles.bigButton}
+                ><Text style={{color: "#fff", fontSize: 20}}>Join</Text></TouchableOpacity>
             </View>
         );
     }
@@ -381,11 +383,10 @@ class RequestFormScreen extends React.Component {
                     />
                     <Text style={{height: 40, width: "90%", margin:10}}>📷 Upload Photos</Text>
                     <View style={styles.grayFooter}>
-                        <Button
+                        <TouchableOpacity
                             onPress={() => validateForm() ? navigate('Movers') : false}
-                            title="Find Movers"
-                            color="#00796B"
-                        />
+                            style={styles.bigButton}
+                        ><Text style={{color: "#fff", fontSize: 20}}>Find Movers</Text></TouchableOpacity>
                     </View>
                 </View>
             </ScrollView>
@@ -533,11 +534,10 @@ class MoverDetailScreen extends React.Component {
                 </View>
 
                 <View style={[styles.grayFooter, {display: this.state.preAccept}]}>
-                    <Button
-                        onPress={() => acceptOffer() }
-                        title="Accept Offer"
-                        color="#00796B"
-                    />
+                    <TouchableOpacity
+                            onPress={() => acceptOffer() }
+                            style={styles.bigButton}
+                        ><Text style={{color: "#fff", fontSize: 20}}>Accept Offer</Text></TouchableOpacity>
                     <Text
                         style={{margin:30, fontSize:16, color: "#666"}}
                         onPress={() => navigate("MoverList")}
@@ -547,11 +547,12 @@ class MoverDetailScreen extends React.Component {
 
                 <View style={[styles.grayFooter, {display: this.state.postAccept}]}>
                     <Text
-                        style={{margin:10, fontWeight: "bold", fontSize:30, color: "#00796B"}}
+                        style={{margin:10, fontWeight: "bold", fontSize:20, color: "#00796B"}}
                     >Offer Accepted!</Text>
                     <Text
                         style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:16, textAlign: 'center', color: "#666"}}
                     >Don&#8217;t forget to contact {this.state.data.name.split(" ")[0]} to confirm details and be sure to pay when the job is done!</Text>
+
                     <Button
                         onPress={() => navigate("Review") }
                         title="Job Done? Leave a Review!"
@@ -657,14 +658,13 @@ class ReviewScreen extends React.Component {
                 </View>
 
                 <View style={styles.grayFooter}>
-                    <Button
-                        onPress={() => recordRating() }
-                        title="Submit Review"
-                        color="#00796B"
-                    />
+                    <TouchableOpacity
+                            onPress={() => recordRating()}
+                            style={styles.bigButton}
+                        ><Text style={{color: "#fff", fontSize: 20}}>Submit Review</Text></TouchableOpacity>
                     <Text
                         style={{margin:30, fontSize:16, color: "#666"}}
-                        onPress={() => navigate("GetCode")}
+                        onPress={() => navigate("Requester")}
                     >Cancel</Text>
                 </View>
             </View>
@@ -680,7 +680,6 @@ class ProfileScreen extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            phoneValidated: false
         }
     }
 
@@ -700,7 +699,7 @@ class ProfileScreen extends React.Component {
                         <Text style={styles.h1}>Update Profile</Text>
                     </View>
                     <Text
-                        style={{display: this.state.phoneValidated ? 'none' : 'flex'}}
+                        style={{display: validatedPhone ? 'none' : 'flex', width: "100%", backgroundColor: "yellow", padding: 5, marginTop: 0}}
                         onPress={() => navigate('GetCode')}
                     >Phone not yet validated. Tap here to validate phone</Text>
                     <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
@@ -735,11 +734,20 @@ class ProfileScreen extends React.Component {
                     />
                     <Text style={{height: 40, width: "90%", margin:10}}>📷 Upload New Profile Photo</Text>
                     <View style={styles.grayFooter}>
-                        <Button
-                            onPress={() => submitForm() ? navigate('Requester') : false}
-                            title="Save Changes"
-                            color="#00796B"
-                        />
+
+                        <TouchableOpacity
+                             onPress={() => {
+                                if (submitForm) {
+                                    if (userType == "requester") {
+                                        navigate('Requester');
+                                    } else {
+                                        navigate("JobList");
+                                    }
+                                }
+                            }}
+                            style={styles.bigButton}
+                        ><Text style={{color: "#fff", fontSize: 20}}>Save Changes</Text></TouchableOpacity>
+
                         <Text
                             onPress={() => {
                                 if (userType == "requester") {
@@ -914,15 +922,15 @@ class JobDetailScreen extends React.Component {
                 <View style={[styles.grayFooter, {display: this.state.preAccept}]}>
                     <TextInput placeholder="Amount" />
                     <TextInput placeholder="Start Time" />
-                    <Button
-                        onPress={() => placeOffer() }
-                        title="Place Offer"
-                        color="#00796B"
-                    />
+
+                    <TouchableOpacity
+                             onPress={() => placeOffer() }
+                            style={styles.bigButton}
+                        ><Text style={{color: "#fff", fontSize: 20}}>Place Offer</Text></TouchableOpacity>
                     <Text
                         style={{margin:30, fontSize:16, color: "#666"}}
                         onPress={() => navigate("JobList")}
-                    >View Other Offers</Text>
+                    >View Other Jobs</Text>
                 </View>
 
                 <View style={[styles.grayFooter, {display: this.state.postAccept}]}>
@@ -931,7 +939,7 @@ class JobDetailScreen extends React.Component {
                     >Offer placed!</Text>
                     <Text
                         style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:16, textAlign: 'center', color: "#666"}}
-                    >We'll let you know if the requester accepts your offer.</Text>
+                    >We will let you know if the requester accepts your offer.</Text>
                 </View>
             </View>
             </ScrollView>
@@ -954,7 +962,8 @@ const App = StackNavigator({
             MoverList: { screen: MoverListScreen },
             ViewMover: { screen: MoverDetailScreen},
             Review: { screen: ReviewScreen },
-        }), navigationOptions: ({ navigation }) => ({
+        }),
+            navigationOptions: ({ navigation }) => ({
             header: null,
         }),
     }
@@ -969,7 +978,7 @@ const App = StackNavigator({
             JobDetail: { screen: JobDetailScreen},
         }), navigationOptions: ({ navigation }) => ({
             header: null,
-        }),
+        }), initialRouteName: 'Jobs'
     }
     }), navigationOptions: ({ navigation }) => ({
             header: null,
@@ -1022,6 +1031,13 @@ const styles = StyleSheet.create({
     moverListItem: {
         paddingBottom: 20,
     },
+    bigButton: {
+        backgroundColor: "#00796B",
+        width: "90%",
+        padding: 10,
+        margin: 10,
+        alignItems: "center"
+    }
 
 
 });
