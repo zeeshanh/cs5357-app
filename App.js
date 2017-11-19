@@ -1104,6 +1104,11 @@ const App = StackNavigator({
     }
     }, {
         tabBarPosition: 'bottom',
+        tabBarOptions: {
+            style: {
+                backgroundColor: '#666',
+            }
+        }
     }), navigationOptions: ({ navigation }) => ({
             header: null,
         }),
