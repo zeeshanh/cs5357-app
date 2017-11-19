@@ -1,9 +1,17 @@
 import React, { Component } from 'react';
 import { Button, StyleSheet, Text, TextInput, ScrollView, View, Alert, FlatList, Image, TouchableHighlight, TouchableOpacity} from 'react-native';
-import { StackNavigator } from 'react-navigation';
+import { StackNavigator, TabNavigator, TabView} from 'react-navigation';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 
 var userType; // either mover or requester
+var validatedPhone = false; // keep track of whether phone has been validated
+
+/*--Entry screens: visible to movers and requesters--*/
+// 1. InitialOptionScreen: Choose to login or register as mover or requester
+// 2. RegisterScreen: Register an account
+// 3. LoginScreen: Login with an existing account
+// 4. GetCodeScreen: Enter phone number, receive a code via SMS
+// 5. EnterCodeScreen: Enter the code you received via SMS to validate your phone #
 
 class InitialOptionScreen extends React.Component {
 
@@ -15,51 +23,47 @@ class InitialOptionScreen extends React.Component {
 
         const { navigate } = this.props.navigation;
 
-        const validatePhone = () => {
-            // TODO: validate phone number
-            return true;
-        };
-
         return (
-            // Nothing is styled yet 😣
             <View style={styles.container}>
                 <Text
                     style={{fontSize:30, color: "#666"}}
                 >Man With A Van</Text>
-                <Text>Mover</Text>
-                <Button
-                    onPress={() => {
-                        userType = 'mover';
-                        navigate('Register');
-                    }}
-                    title="Register"
-                    color="#00796B"
-                />
-                    <Button
+                <TouchableOpacity
                     onPress={() => {
                         userType = 'mover';
                         navigate('Login');
                     }}
-                    title="Login"
-                    color="#00796B"
-                />
-                <Text>Requester</Text>
-                <Button
-                    onPress={() => {
-                        userType = 'requester';
-                        navigate('Register');
-                    }}
-                    title="Register"
-                    color="#00796B"
-                />
-                    <Button
+                    style={styles.bigButton}
+                >
+                    <Text style={{color: "#fff", fontSize: 20}}>Login as Mover</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
                     onPress={() => {
                         userType = 'requester';
                         navigate('Login');
                     }}
-                    title="Login"
-                    color="#00796B"
-                />
+                    style={styles.bigButton}
+                >
+                    <Text style={{color: "#fff", fontSize: 20}}>Login as Requester</Text>
+                </TouchableOpacity>
+
+                    <Text
+                    onPress={() => {
+                        userType = 'mover';
+                        navigate('Register');
+                    }}
+                    style={{margin: 5}}
+                    >Register as Mover</Text>
+
+                    <Text
+                    onPress={() => {
+                        userType = 'requester';
+                        navigate('Register');
+                    }}
+                    style={{margin: 5}}
+                    >Register as Requester</Text>
+
             </View>
         );
     }
@@ -76,16 +80,14 @@ class RegisterScreen extends React.Component {
         const isMover = userType == 'mover' ? true : false;
 
         const submitForm = () => {
-            // TODO: Validate form and submit
+            // TODO: Validate form
+            // TODO: POST validated form data to DB to create new user account
             return true;
         };
 
         return (
-            <ScrollView>
-                <View style={styles.containerTop}>
-                    <View style={styles.grayHeader}>
-                        <Text style={styles.h1}>Register as {userType}</Text>
-                    </View>
+                <View style={styles.container}>
+                    <Text style={styles.h1}>Register as {userType}</Text>
                     <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
                         <TextInput
                             style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}
@@ -97,35 +99,35 @@ class RegisterScreen extends React.Component {
                         />
                     </View>
                     <TextInput
-                        style={styles.input}
+                        style={styles.formField}
                         placeholder="Username"
                     />
                     <TextInput
-                        style={styles.input}
+                        style={styles.formField}
                         placeholder="Password"
+                        secureTextEntry={true}
                     />
                     <TextInput
-                        style={[styles.input, {display: isMover ? 'flex' : 'none'}]}
+                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
                         placeholder="Zip Code"
                     />
                     <TextInput
-                        style={[styles.input, {display: isMover ? 'flex' : 'none'}]}
+                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
                         placeholder="Vehicle Type"
                     />
                     <TextInput
-                        style={[styles.input, {display: isMover ? 'flex' : 'none'}]}
+                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
                         placeholder="Payment Types Accepted"
                     />
                     <Text style={{height: 40, width: "90%", margin:10}}>📷 Upload Profile Photo</Text>
-                    <View style={styles.grayFooter}>
-                        <Button
-                            onPress={() => submitForm() ? navigate('GetCode') : false}
-                            title="Create Account"
-                            color="#00796B"
-                        />
-                    </View>
+
+                    <TouchableOpacity
+                        onPress={() => submitForm() ? navigate('GetCode') : false}
+                        style={styles.bigButton}
+                    >
+                        <Text style={{color: "#fff", fontSize: 20}}>Create Account</Text>
+                    </TouchableOpacity>
                 </View>
-            </ScrollView>
         );
     }
 }
@@ -141,37 +143,37 @@ class LoginScreen extends React.Component {
         const { navigate } = this.props.navigation;
 
         const validateLogin = () => {
-            // TODO: validate login credentials
+            // TODO: validate login credentials (Try to GET user from DB)
             return true;
         };
 
         return (
             <View style={styles.container}>
                 <Text
-                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
+                    style={{fontSize:30, color: "#666", textAlign: 'center', margin: 10}}
                 >Welcome back!</Text>
                 <Text
-                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
+                    style={{fontSize:20, color: "#666", textAlign: 'center',  margin: 10}}
                 >Login as {userType}</Text>
                 <TextInput
-                    style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
+                    style={{height: 40, width: 200, margin:10, width: "90%", textAlign: 'center'}}
                     placeholder="Username"
                 />
                 <TextInput
-                    style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
+                    style={{height: 40, width: 200, margin:10, width: "90%", textAlign: 'center'}}
                     placeholder="Password"
+                    secureTextEntry={true}
                 />
-                <Button
+                <TouchableOpacity
                     onPress={() => {
                         if (userType == 'requester' && validateLogin) {
-                            navigate('RequestForm');
+                            navigate('Requester');
                         } else if (userType == 'mover' && validateLogin){
-                            navigate('AllJobsScreen');
+                            navigate('Mover');
                         }
                     }}
-                    title="Log In"
-                    color="#00796B"
-                />
+                    style={styles.bigButton}
+                ><Text style={{color: "#fff", fontSize: 20}}>Log In</Text></TouchableOpacity>
             </View>
         );
     }
@@ -189,43 +191,40 @@ class GetCodeScreen extends React.Component {
 
         const validatePhone = () => {
             // TODO: validate phone number
+            // TODO: send SMS to validated number
             return true;
         };
 
         return (
             <View style={styles.container}>
                 <Text
-                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
-                >Welcome to Man With A Van</Text>
-                <Text
-                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
-                >Please Validate Your Phone Number</Text>
+                    style={{fontSize:20, color: "#666", textAlign: 'center', margin: 10}}
+                >Please validate your phone number</Text>
+
                 <TextInput
                     style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
                     placeholder="Enter Phone Number"
                 />
-                <Button
-                    onPress={() => validatePhone ? navigate('EnterCode', {'userType': userType}) : false}
-                    title="Get Validation Code"
-                    color="#00796B"
-                />
-                <Button
+                <TouchableOpacity
+                    onPress={() => validatePhone ? navigate('EnterCode') : false}
+                    style={styles.bigButton}
+                ><Text style={{color: "#fff", fontSize: 20}}>Get Code</Text></TouchableOpacity>
+
+                <TouchableOpacity
                     onPress={() => {
                         if (userType == 'requester') {
-                            navigate('RequestForm');
+                            navigate('Requester');
                         } else {
-                            navigate('AllJobsScreen');
+                            navigate('Mover');
                         }
                     }}
-                    title="I'll Do This Later"
-                    color="#666"
-                />
+                    style={[styles.bigButton, {backgroundColor: "#666"}]}
+                ><Text style={{color: "#fff", fontSize: 20}}>I&apos;ll Do This Later</Text></TouchableOpacity>
+
             </View>
         );
     }
 }
-
-
 
 class EnterCodeScreen extends React.Component {
 
@@ -244,33 +243,46 @@ class EnterCodeScreen extends React.Component {
         return (
             <View style={styles.container}>
                 <Text
-                    style={{fontSize:20, color: "#666", textAlign: 'center'}}
-                >Welcome to Man With A Van</Text>
+                    style={{fontSize:30, color: "#666", textAlign: 'center', margin: 10}}
+                >Thanks for entering your phone.</Text>
                 <Text
-                    style={{color: "#666", textAlign: 'center', width: '80%'}}
-                >We have sent you a code via text message. Please enter it below.</Text>
+                    style={{fontSize:20, color: "#666", textAlign: 'center',  margin: 10}}
+                >We have sent you a validation code. Please enter it below.</Text>
                 <TextInput
                     style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
                     placeholder="Enter Code"
                 />
-                <Button
+
+                <TouchableOpacity
                     onPress={() => {
                         if (userType == 'requester' && validateCode) {
-                            navigate('RequestForm');
+                            validatedPhone = true;
+                            navigate('Requester');
+                        } else if (validateCode) {
+                            validatedPhone = true;
+                            navigate('Mover');
                         }
                     }}
-                    title="Join"
-                    color="#00796B"
-                />
+                    style={styles.bigButton}
+                ><Text style={{color: "#fff", fontSize: 20}}>Join</Text></TouchableOpacity>
             </View>
         );
     }
 }
 
+
+/*--Requester Screens--*/
+// These screens are only visible to requesters:
+// 1. RequestFormScreen: Form to place a request for a new moving job
+// 2. MoverList: List of movers who have placed offers on a request
+// 3. MoverListScreen: Container that holds the MoverList (necessary for navigation)
+// 4. MoverDetailScreen: View details about a mover
+// 5. ReviewScreen: Leave a star-review for a mover
+
 class RequestFormScreen extends React.Component {
 
     static navigationOptions = {
-        header: null
+        tabBarLabel: 'Request',
     };
 
     constructor(props) {
@@ -324,11 +336,16 @@ class RequestFormScreen extends React.Component {
             } else {
                 return true;
             }
+
+            // TODO: POST validated form data to DB
         };
 
         return (
             <ScrollView>
-                <DateTimePicker
+
+                <View style={styles.container}>
+
+                    <DateTimePicker
                     mode="time"
                     isVisible={this.state.timePickerVisible}
                     onConfirm={() => {
@@ -339,18 +356,18 @@ class RequestFormScreen extends React.Component {
                         this.setState({timePickerVisible: false});
                     }}
                 />
-                <View style={styles.containerTop}>
+
                     <View style={styles.grayHeader}>
-                        <Text style={styles.h1}>What do you need help with today?</Text>
-                        <Text style={{height: 20, width: "90%", margin:10}}>Describe the job and we&#8217;ll find you a mover!</Text>
+                        <Text style={styles.h1}>Submit a new job request</Text>
                     </View>
+
                     <TextInput
-                        style={styles.input}
+                        style={styles.formField}
                         placeholder="Start Address"
                         onChangeText={(text) => this.setState({startAddress: text})}
                     />
                     <TextInput
-                        style={styles.input}
+                        style={styles.formField}
                         placeholder="End Address"
                         onChangeText={(text) => this.setState({endAddress: text})}
                     />
@@ -369,22 +386,22 @@ class RequestFormScreen extends React.Component {
                         />
                     </View>
                     <TextInput
-                        style={styles.input}
+                        style={styles.formField}
                         placeholder="Maximum Price"
                         onChangeText={(text) => this.setState({maximumPrice: text})}
                     />
                     <TextInput
-                        style={styles.input}
+                        style={styles.formField}
                         placeholder="Describe the job"
                         onChangeText={(text) => this.setState({description: text})}
                     />
                     <Text style={{height: 40, width: "90%", margin:10}}>📷 Upload Photos</Text>
+
                     <View style={styles.grayFooter}>
-                        <Button
-                            onPress={() => validateForm() ? navigate('MoverList') : false}
-                            title="Find Movers"
-                            color="#00796B"
-                        />
+                        <TouchableOpacity
+                            onPress={() => validateForm() ? navigate('Movers') : false}
+                            style={styles.bigButton}
+                        ><Text style={{color: "#fff", fontSize: 20}}>Find Movers</Text></TouchableOpacity>
                     </View>
                 </View>
             </ScrollView>
@@ -397,14 +414,18 @@ class MoverList extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            // TODO: GET mover data
             data: [ // Hardcoded for now
                 { key: 0, values: {
-                    "id": 0, // Should correspond to id in database
+                    "id": 0,
                     "name": "Jeff McMover",
                     "photo": require("./img/jeff.png"),
                     "price": 400,
                     "startTime": new Date("Tue Mar 24 2015 20:00:00 GMT-0400 (EDT)"),
-                    "rating": 4.9
+                    "rating": 4.9,
+                    "phone": "555-867-5309",
+                    "vehicle": "Large box truck",
+                    "payment": "Cash, Venmo"
                     }
                 },
                 { key: 1, values: {
@@ -413,7 +434,10 @@ class MoverList extends React.Component {
                     "photo": require("./img/jeff.png"),
                     "price": 425,
                     "startTime": new Date("Tue Mar 24 2015 20:00:00 GMT-0400 (EDT)"),
-                    "rating": 4.8
+                    "rating": 4.8,
+                    "phone": "555-867-5311",
+                    "vehicle": "Small box truck",
+                    "payment": "Cash ONLY"
                     }
                 }
             ]
@@ -425,40 +449,36 @@ class MoverList extends React.Component {
         return(
             <View style={styles.containerTop}>
 
-            <View style={styles.grayHeader}>
-                <Text style={styles.h1}>{this.state.data.length} movers are available{this.state.data.length > 0 ? "!" : " :("}</Text>
-            </View>
+                <View style={styles.grayHeader}>
+                    <Text style={styles.h1}>{this.state.data.length} movers are available{this.state.data.length > 0 ? "!" : " :("}</Text>
+                </View>
 
+                <ScrollView style={{height: 400}}>
             <FlatList
                 data={this.state.data}
                 style={{width: "100%"}}
 
                 renderItem={({item}) => (
-                    <View
-                        style={{padding: 20, flexDirection: "row", justifyContent: "space-between"}}
-                    >
-                        <Image source={item.values.photo} style={{width: 40, height: 40}}/>
-                        <View style={{marginRight: 10}}>
+                    <TouchableOpacity onPress={() => this.props.navigation.navigate("ViewMover", {moverInfo: item.values})}>
+
+                    <View style={{width: "90%", paddingTop: 20, paddingBottom: 20, flexDirection: "row", alignItems: "flex-start"}}>
+                        <Image source={item.values.photo} style={{width: 80, height: 80}}/>
+                        <View style={{marginLeft: 16}}>
                         <Text style={{fontSize: 16, fontWeight: "bold", color: "#333"}}>{item.values.name}</Text>
-                            <Text>${item.values.price} | Start at {item.values.startTime.getHours()}:{item.values.startTime.getMinutes()} | {item.values.rating}/5 Stars</Text>
+                            <Text>Offering ${item.values.price}</Text>
+                            <Text>Starts at {item.values.startTime.getHours()}:{item.values.startTime.getMinutes()}</Text>
+                            <Text>{item.values.rating}/5 Stars</Text>
                         </View>
-                        <Text
-                            onPress={() => this.props.navigation.navigate("MoverDetail")}
-                            style={{fontWeight: "bold", color: "#00796B"}}
-                        >
-                            Details
-                        </Text>
                     </View>
+                    </TouchableOpacity>
                 )}
             />
-                <View style={styles.grayFooter}>
-                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
+                </ScrollView>
+                <View style={[styles.grayFooter, {height: 100}]}>
                         <Text style={{height: 40, margin:10}}>Refresh List</Text>
-                        <Text style={{height: 40, margin:10}}>Sort</Text>
                     </View>
-                </View>
 
-             </View>
+            </View>
         );
     }
 }
@@ -482,35 +502,25 @@ MoverListScreen.router = MoverList.router; // Nested navigator: https://reactnav
 
 class MoverDetailScreen extends React.Component {
 
+    static navigationOptions = {
+        header: null
+    };
+
     constructor(props) {
         super(props);
         this.state = {
-            data: {
-                // Should get this from the database
-                "id": 0,
-                "name": "Jeff McMover",
-                "photo": require("./img/jeff.png"),
-                "price": 400,
-                "startTime": new Date("Tue Mar 24 2015 20:00:00 GMT-0400 (EDT)"),
-                "rating": 4.9,
-                "phone": "555-867-5309",
-                "vehicle": "Large box truck",
-                "payment": "Cash, Venmo"
-            },
+            data: this.props.navigation.state.params.moverInfo,
             preAccept: "flex",
             postAccept: "none"
         }
     }
-
-    static navigationOptions = {
-        header: null
-    };
 
     render() {
         const { navigate } = this.props.navigation;
 
         const acceptOffer = () => {
             this.setState({preAccept: "none", postAccept: "flex"});
+            // TODO: update DB to reflect offer is accepted
         };
 
         return (
@@ -533,11 +543,10 @@ class MoverDetailScreen extends React.Component {
                 </View>
 
                 <View style={[styles.grayFooter, {display: this.state.preAccept}]}>
-                    <Button
-                        onPress={() => acceptOffer() }
-                        title="Accept Offer"
-                        color="#00796B"
-                    />
+                    <TouchableOpacity
+                            onPress={() => acceptOffer() }
+                            style={styles.bigButton}
+                        ><Text style={{color: "#fff", fontSize: 20}}>Accept Offer</Text></TouchableOpacity>
                     <Text
                         style={{margin:30, fontSize:16, color: "#666"}}
                         onPress={() => navigate("MoverList")}
@@ -547,11 +556,12 @@ class MoverDetailScreen extends React.Component {
 
                 <View style={[styles.grayFooter, {display: this.state.postAccept}]}>
                     <Text
-                        style={{margin:10, fontWeight: "bold", fontSize:30, color: "#00796B"}}
+                        style={{margin:10, fontWeight: "bold", fontSize:20, color: "#00796B"}}
                     >Offer Accepted!</Text>
                     <Text
                         style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:16, textAlign: 'center', color: "#666"}}
                     >Don&#8217;t forget to contact {this.state.data.name.split(" ")[0]} to confirm details and be sure to pay when the job is done!</Text>
+
                     <Button
                         onPress={() => navigate("Review") }
                         title="Job Done? Leave a Review!"
@@ -597,11 +607,12 @@ class ReviewScreen extends React.Component {
         const { navigate } = this.props.navigation;
 
         const recordRating = () => {
+            // TODO: POST rating to DB
             Alert.alert(
                 'Thank You!',
                 'You have rated ' + this.state.data.name.split(" ")[0] + ' ' + this.state.numStars + ' stars.',
                 [
-                    {text: 'Exit', onPress: () => navigate("GetCode")},
+                    {text: 'Exit', onPress: () => navigate("Requester")},
                 ],
                 { cancelable: true }
             );
@@ -657,14 +668,13 @@ class ReviewScreen extends React.Component {
                 </View>
 
                 <View style={styles.grayFooter}>
-                    <Button
-                        onPress={() => recordRating() }
-                        title="Submit Review"
-                        color="#00796B"
-                    />
+                    <TouchableOpacity
+                            onPress={() => recordRating()}
+                            style={styles.bigButton}
+                        ><Text style={{color: "#fff", fontSize: 20}}>Submit Review</Text></TouchableOpacity>
                     <Text
                         style={{margin:30, fontSize:16, color: "#666"}}
-                        onPress={() => navigate("GetCode")}
+                        onPress={() => navigate("Requester")}
                     >Cancel</Text>
                 </View>
             </View>
@@ -673,21 +683,433 @@ class ReviewScreen extends React.Component {
 }
 
 
+/*--Profile Screen--*/
+// Where user can update their profile. Visible to movers and requesters.
+class ProfileScreen extends React.Component {
+    static navigationOptions = {
+        tabBarLabel: 'Profile',
+    };
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            // TODO: get profile data from DB
+            data: {
+                firstName: "Joe",
+                lastName: "McMover",
+                profilePhoto: require("./img/jeff.png"),
+                username: "joemcmover89",
+                password: "12345",
+                zipCode: "10044",
+                vehicle: "Large box truck",
+                payments: "Cash"
+            },
+
+            // If the user changes anything, it will be stored here
+            updatedData: {
+                firstName: null,
+                lastName: null,
+                profilePhoto: null,
+                username: null,
+                password: null,
+                zipCode: null,
+                vehicle: null,
+                payments: null
+            }
+        }
+    }
+
+    render() {
+        const { navigate } = this.props.navigation;
+        const isMover = userType == 'mover' ? true : false;
+
+        const updateProfile = () => {
+            // TODO: Validate form and post data to DB
+            return true;
+        };
+
+        const cancelUpdateProfile = () => {
+            // TODO: Revert all fields to original state
+            return true;
+        };
+
+        const updateProfilePhoto = () => {
+            // TODO: allow new image to be uploaded
+            alert("Tapping photo will trigger prompt to upload new photo");
+        };
+
+        return (
+                <ScrollView>
+                    <View style={styles.container}>
+
+                        <View style={styles.grayHeader}>
+                            <Text style={styles.h1}>{this.state.data.firstName}&apos;s Profile</Text>
+                        </View>
+
+                    <Text
+                        style={{display: validatedPhone ? 'none' : 'flex',
+                            width: "100%",
+                            backgroundColor: "yellow",
+                            padding: 5,
+                            marginTop: 0,
+                            textAlign: 'center'
+                        }}
+                        onPress={() => navigate('GetCode')}
+                    >Phone not yet validated. Tap here to validate phone</Text>
+                    <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
+                        <TouchableOpacity onPress={() => updateProfilePhoto()}>
+                            <Image source={this.state.data.profilePhoto} style={{marginTop: 20, width: 100, height: 100}}/>
+                        </TouchableOpacity>
+                        <View style={{width: "80%", alignItems: 'flex-start', marginLeft: 20}}>
+                            <TextInput
+                                style={[styles.formField, {width: "79%"}]}
+                                placeholder="First Name"
+                                defaultValue={this.state.data.firstName}
+                                onChangeText={(text) => this.setState({updatedData: {firstName: text}})}
+                            />
+                             <TextInput
+                                style={[styles.formField, {width: "79%"}]}
+                                placeholder="Last Name"
+                                defaultValue={this.state.data.lastName}
+                                onChangeText={(text) => this.setState({updatedData: {lastName: text}})}
+                             />
+                        </View>
+                    </View>
+                    <TextInput
+                        style={styles.formField}
+                        placeholder="Username"
+                        defaultValue={this.state.data.username}
+                        onChangeText={(text) => this.setState({updatedData: {username: text}})}
+                    />
+                    <TextInput
+                        style={styles.formField}
+                        placeholder="Password"
+                        secureTextEntry={true}
+                        defaultValue={this.state.data.password}
+                        onChangeText={(text) => this.setState({updatedData: {password: text}})}
+                    />
+                    <TextInput
+                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                        placeholder="Zip Code"
+                        defaultValue={this.state.data.zipCode}
+                        onChangeText={(text) => this.setState({updatedData: {zipCode: text}})}
+                    />
+                    <TextInput
+                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                        placeholder="Vehicle Type"
+                        defaultValue={this.state.data.vehicle}
+                        onChangeText={(text) => this.setState({updatedData: {vehicle: text}})}
+                    />
+                    <TextInput
+                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                        placeholder="Payment Types Accepted"
+                        defaultValue={this.state.data.payments}
+                        onChangeText={(text) => this.setState({updatedData: {payments: text}})}
+                    />
+
+                    <View style={styles.grayFooter}>
+                        <TouchableOpacity
+                             onPress={() => updateProfile()}
+                            style={styles.bigButton}
+                        ><Text style={{color: "#fff", fontSize: 20}}>Save Changes</Text></TouchableOpacity>
+
+                        <Text
+                            onPress={() => cancelUpdateProfile()}
+                        >Cancel</Text>
+                    </View>
+                </View>
+                </ScrollView>
+        );
+    }
+}
+
+
+/* -- Mover Screens --*/
+// These screens are only visible to movers:
+// 1. JobList: the list of available jobs submitted by requesters; nested inside JobListScreen
+// 2. JobListScreen: screen containing the list of available jobs
+// 3. JobDetailScreen: view details of a specific job; ability to place an offer
+
+class JobList extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            data: [
+                // TODO: GET available jobs from database
+                // Jobs should be:
+                //   - Within a certain distance of the mover (e.g. 10mi)
+                //   - End time is before the current time
+                //   - Ordered by distance
+                { key: 0, values: {
+                    "id": 0,
+                    "description": "Moving some stuff",
+                    "maxPrice": 1,
+                    "startAddress": "[start addr]",
+                    "endAddress": "[end addr]",
+                    "startTime": "1pm",
+                    "endTime": "6pm",
+                    "photo": require("./img/boxes.jpg"),
+                    }
+                },
+                { key: 1, values: {
+                    "id": 0,
+                    "description": "Another job",
+                    "maxPrice": 1,
+                    "startAddress": "[start addr]",
+                    "endAddress": "[end addr]",
+                    "startTime": "1pm",
+                    "endTime": "6pm",
+                    "photo": require("./img/boxes.jpg"),
+                    }
+                },
+            ]
+        }
+    }
+
+    render() {
+
+        const refreshJobs = () => {
+            // TODO: GET available jobs from DB
+            // Same selection criteria and sorting parameters as above
+        };
+
+        return(
+            <View style={styles.containerTop}>
+
+            <View style={styles.grayHeader}>
+                <Text style={styles.h1}>{this.state.data.length} jobs are available{this.state.data.length > 0 ? "!" : " :("}</Text>
+            </View>
+
+                <ScrollView style={{height: 400, width: "90%"}}>
+            <FlatList
+                data={this.state.data}
+                style={{width: "100%"}}
+
+                renderItem={({item}) => (
+
+                    <TouchableOpacity onPress={() => this.props.navigation.navigate("JobDetail", {jobInfo: item.values})}>
+
+                    <View style={{width: "90%", paddingTop: 20, paddingBottom: 20, flexDirection: "row", alignItems: "flex-start"}}>
+                        <Image source={item.values.photo} style={{maxWidth: 80, maxHeight: 60}}/>
+                        <View style={{marginLeft: 10}}>
+                        <Text style={{fontSize: 16, fontWeight: "bold", color: "#333"}}>{item.values.description}</Text>
+                            <Text>Max ${item.values.maxPrice}</Text>
+                            <Text>Start at {item.values.startTime}</Text>
+                        </View>
+                    </View>
+
+                    </TouchableOpacity>
+                )}
+            />
+                </ScrollView>
+                <View style={styles.grayFooter}>
+                    <View style={{flex:0, alignItems: "center", width: "90%"}}>
+                        <Text
+                            style={{height: 40, margin:10}}
+                            onPress={() => refreshJobs() }
+                        >Refresh List</Text>
+                    </View>
+                </View>
+
+             </View>
+        );
+    }
+}
+
+class JobListScreen extends React.Component {
+    static navigationOptions = {
+        header: null
+    };
+
+    render() {
+
+        return (
+            <ScrollView>
+                <JobList navigation={this.props.navigation} />
+            </ScrollView>
+        );
+    }
+}
+
+// Nested navigator: https://reactnavigation.org/docs/intro/nesting
+JobListScreen.router = JobList.router;
+
+class JobDetailScreen extends React.Component {
+
+    static navigationOptions = {
+        header: null
+    };
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            data: this.props.navigation.state.params.jobInfo, // Data about the job, passed from JobListScreen
+            preAccept: "flex", // Style before the offer has been placed
+            postAccept: "none", // Style after the offer has been placed
+            offerAmount: null, // Input amount offered
+            offerTime: null, // Input start time offered
+        }
+    }
+
+    render() {
+        const { navigate } = this.props.navigation;
+
+        const placeOffer = () => {
+            // TODO: validate offer
+            //   - Amount must be numeric and less than requester's max amount
+            //   - Start time must be between requester's start time and end time
+
+            // TODO: POST validated offer to DB
+
+            this.setState({preAccept: "none", postAccept: "flex"});
+        };
+
+        return (
+            <ScrollView>
+            <View style={{flex: 1, justifyContent: "space-between", marginTop: 24}}>
+
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff"}}>
+
+                    <Image source={this.state.data.photo} style={{width: "100%", height:100}}/>
+
+                    <View style={styles.jobDetailRow}>
+
+                        <Text style={styles.jobDetailDesc}>Description</Text>
+                        <Text style={styles.jobDetailInfo}>{this.state.data.description}</Text>
+
+                    </View>
+
+                    <View style={[styles.jobDetailRow, {flexDirection: 'row'}]}>
+                        <View style={{width: "50%"}}>
+
+                            <Text style={styles.jobDetailDesc}>Max Price</Text>
+                            <Text style={styles.jobDetailInfo}>{this.state.data.maxPrice}</Text>
+
+                        </View>
+
+                        <View>
+
+                            <Text style={styles.jobDetailDesc}>Other offers</Text>
+                            <Text style={styles.jobDetailInfo}>$x - $y</Text>
+
+                        </View>
+                    </View>
+
+                    <View style={[styles.jobDetailRow, {flexDirection: 'row', borderBottomWidth: 0}]}>
+                        <View style={{width: "50%"}}>
+
+                            <Text style={styles.jobDetailDesc}>Start time</Text>
+                            <Text style={styles.jobDetailInfo}>{this.state.data.startTime}</Text>
+
+                            <Text style={styles.jobDetailDesc}>End time</Text>
+                            <Text style={styles.jobDetailInfo}>{this.state.data.endTime}</Text>
+
+                        </View>
+                        <View>
+
+                            <Text style={styles.jobDetailDesc}>Start address</Text>
+                            <Text style={styles.jobDetailInfo}>{this.state.data.startAddress}</Text>
+
+                            <Text style={styles.jobDetailDesc}>End address</Text>
+                            <Text style={styles.jobDetailInfo}>{this.state.data.endAddress}</Text>
+
+                        </View>
+                    </View>
+
+                </View>
+
+                <View style={[styles.grayFooter, {display: this.state.preAccept}]}>
+                    <View style={{flex:0, flexDirection: "row", width: "90%",  padding: 10}}>
+                        <View style={{width: "50%"}}>
+                            <Text style={styles.jobDetailDesc}>Offer Amount ($)</Text>
+                        <TextInput style={styles.formField}
+                            placeholder="e.g. 100.00"
+                            onChange={(text) => this.setState({offerAmount: text})}
+                        />
+                        </View>
+                        <View style={{width: "50%"}}>
+                            <Text style={styles.jobDetailDesc}>Start Time</Text>
+                        <TextInput style={styles.formField}
+                            placeholder="e.g. 1:00pm"
+                            onChange={(text) => this.setState({offerTime: text})}
+                        />
+                        </View>
+                    </View>
+
+                    <TouchableOpacity onPress={() => placeOffer() } style={styles.bigButton}>
+                        <Text style={{color: "#fff", fontSize: 20}}>Place Offer</Text>
+                    </TouchableOpacity>
+
+                    <Text
+                        style={{margin:20, fontSize:16, color: "#666"}}
+                        onPress={() => navigate("JobList")}
+                    >View Other Jobs</Text>
+                </View>
+
+                <View style={[styles.grayFooter, {display: this.state.postAccept}]}>
+                    <Text
+                        style={{margin:10, fontSize:30, color: "#00796B"}}
+                    >Offer placed!</Text>
+                    <Text
+                        style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:16, textAlign: 'center', color: "#666"}}
+                    >We will let you know if the requester accepts your offer.</Text>
+                </View>
+            </View>
+            </ScrollView>
+        );
+    }
+}
+
+
+// StackNavigator: a registry of all screens in the app
+// Requester and mover both have a nested TabNavigator that contains their screens
 const App = StackNavigator({
     InitialOptions: { screen: InitialOptionScreen },
     Register: { screen: RegisterScreen },
     Login: { screen: LoginScreen },
     GetCode: { screen: GetCodeScreen },
     EnterCode: { screen: EnterCodeScreen },
-    RequestForm: { screen: RequestFormScreen },
-    MoverList: { screen: MoverListScreen},
-    MoverDetail: { screen: MoverDetailScreen},
-    Review: { screen: ReviewScreen },
+    Requester: { screen: TabNavigator({
+        RequestForm: { screen: RequestFormScreen },
+        Profile: { screen: ProfileScreen },
+        Movers: { screen: StackNavigator({
+            MoverList: { screen: MoverListScreen },
+            ViewMover: { screen: MoverDetailScreen},
+            Review: { screen: ReviewScreen },
+        }),
+            navigationOptions: ({ navigation }) => ({
+            header: null,
+        }),
+    }
+    }, {
+        tabBarPosition: 'bottom',
+        tabBarOptions: {
+            style: {
+                backgroundColor: '#666',
+            }
+        }
+    }), navigationOptions: ({ navigation }) => ({
+            header: null,
+        }),
     },
-    {
-        headerMode: 'screen'
-    });
+    Mover: { screen: TabNavigator({
+        Profile: { screen: ProfileScreen },
+        Jobs: { screen: StackNavigator({
+            JobList: { screen: JobListScreen },
+            JobDetail: { screen: JobDetailScreen},
+        }), navigationOptions: ({ navigation }) => ({
+            header: null,
+        }), initialRouteName: 'Jobs'
+    }
+    }, {
+        tabBarPosition: 'bottom',
+    }), navigationOptions: ({ navigation }) => ({
+            header: null,
+        }),
+    },
 
+});
 
 const styles = StyleSheet.create({
     //https://material.io/guidelines/style/color.html#color-color-palette
@@ -696,20 +1118,20 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
+        marginTop: 24,
     },
     containerTop: {
         flex: 1,
         backgroundColor: '#fff',
         alignItems: 'center',
+        marginTop: 24,
     },
     grayHeader: {
         backgroundColor: "#e8e8e8",
         width: "100%",
-        paddingTop: 40,
-        paddingBottom: 20,
+        padding: 20,
         flex: 0,
         alignItems: 'center',
-        marginBottom: 20,
     },
     grayFooter: {
         backgroundColor: "#e8e8e8",
@@ -720,20 +1142,47 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     h1: {
-        height: 30,
         width: "90%",
         margin:10,
-        fontSize:20,
-        color: "#666"
-    },
-    input: {
-        height: 40,
-        width: "90%",
-        margin:10
+        fontSize:24,
+        color: "#666",
+        textAlign: 'center'
     },
     moverListItem: {
         paddingBottom: 20,
     },
+    bigButton: {
+        backgroundColor: "#00796B",
+        width: "90%",
+        padding: 10,
+        margin: 10,
+        alignItems: "center"
+    },
+    jobDetailDesc: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        alignItems: 'flex-start'
+    },
+    jobDetailInfo: {
+        fontSize: 18,
+        marginBottom: 10,
+        alignItems: 'flex-start'
+    },
+    jobDetailRow: {
+        width: '100%',
+        paddingLeft: 20,
+        paddingRight: 20,
+        paddingTop: 10,
+        paddingBottom: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: "#999"
+    },
+    formField: {
+        height: 40,
+        width: "90%",
+        marginTop:10,
+        marginBottom:10,
+    }
 
 
 });
