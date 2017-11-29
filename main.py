@@ -7,14 +7,14 @@ from pymongo.errors import DuplicateKeyError
 from werkzeug import security
 from werkzeug.exceptions import BadRequest, NotFound, UnsupportedMediaType, Unauthorized
 from authy.api import AuthyApiClient
-from exceptions import JSONExceptionHandler
+#from exceptions import JSONExceptionHandler
 
 # This defines a Flask application
 app = Flask(__name__)
 
 # This code here converts Flask's default (HTML) errors to Json errors.
 # This is helpful because HTML breaks clients that are expecting JSON
-JSONExceptionHandler(app)
+#JSONExceptionHandler(app)
 
 # We configure the app object
 app.config['MONGO_DBNAME'] = 'moving_database'
@@ -24,7 +24,7 @@ app.secret_key = 'A0Zr98j/3yX R~XHH!!!jmN]LWX/,?RT2341'
 mongo = PyMongo(app)
 authy_api = AuthyApiClient('nhC1DZj2WEeGhKqqi1NNvcIrEHAL30W9')
 
-@app.route('/addPhone', methods = ['POST'])
+@app.route('/addPhone', methods = ['POST']) 
 def addPhone():
     # if session.get('user') is None:
     #     raise Unauthorized()
