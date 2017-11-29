@@ -8,6 +8,9 @@ from werkzeug import security
 from werkzeug.exceptions import BadRequest, NotFound, UnsupportedMediaType, Unauthorized
 from authy.api import AuthyApiClient
 from exceptions import JSONExceptionHandler
+from pymongo import MongoClient
+import datetime
+#from mongoengine import *
 
 # This defines a Flask application
 app = Flask(__name__)
@@ -17,12 +20,197 @@ app = Flask(__name__)
 JSONExceptionHandler(app)
 
 # We configure the app object
-app.config['MONGO_DBNAME'] = 'moving_database'
+#app.config['MONGO_DBNAME'] = 'moving_database'
 app.secret_key = 'A0Zr98j/3yX R~XHH!!!jmN]LWX/,?RT2341'
 
 # This initializes PyMongo and makes `mongo` available
-mongo = PyMongo(app)
+#mongo = PyMongo(app)
 authy_api = AuthyApiClient('nhC1DZj2WEeGhKqqi1NNvcIrEHAL30W9')
+
+# database schema
+client = MongoClient()
+client = MongoClient('localhost', 27017)
+db = client['moving_database']
+#mongoengine.connect('moving_database', host='localhost', port=27017)
+movers = db['movers']
+moverReviews = db['mover_reviews']
+jobs = db['jobs']
+offers = db['offers']
+jobPhotos = db['job_photos']
+
+
+#creating movers data
+@app.route('/addMovers', methods = ['POST'])
+def addMovers():
+    try:
+        post = {"firstName": "Mike",
+                "lastName": "Weener",
+                "email": "mikew@gmail.com",
+                "password": "1234",
+                "zipcode":10103,
+                "vehicle": "bmw",
+                "phone": "123456789",
+                "paymentTypes": "debit",
+                "profilePhoto": "mike.jpg",
+                "date": datetime.datetime.utcnow()}
+
+        #jsonData = request.json['info'] - comes from frontend
+        #firstName = json_data['firstName']
+
+        postId = movers.insert_one(post).inserted_id
+
+        return jsonify(status='OK',message='inserted successfully')
+        #return postId
+
+    except Exception,e:
+        return jsonify(status='ERROR',message=str(e))
+
+#fetching the entire movers list
+@app.route('/fetchMoversList', methods = ['POST'])
+def fetchMoversList():
+    try:
+        moversUsers = db.movers.find()
+        
+        moversList = []
+        for user in moversUsers:
+            #print user
+            u = {
+                    "firstName":user['firstName'],
+                    "lastName":user['lastName'],
+                    "email":user['email'],
+                    "password":user['password'],
+                    "zipcode":str(user['zipcode']),
+                    "vehicle":user['vehicle'],
+                    "phone":user['phone'],
+                    "paymentTypes":user['paymentTypes'],
+                    "profilePhoto":user['profilePhoto'],
+                    "date":str(user['date']),
+                    'id': str(user['_id'])
+                    }
+            moversList.append(u)
+
+    except Exception,e:
+        return str(e)
+
+    return json.dumps(moversList)
+
+#updating attributes i.e. phone number
+@app.route('/updatePhone', methods = ['POST'])
+def updatePhone():
+    try:
+        phoneInfo = request.json['info']
+        phone = phoneInfo['phone']
+        moverId = phoneInfo['id']
+
+        db.movers.update_one({'_id':ObjectId(moverId)},{'$set':{'phone':phone}})
+        return jsonify(status='OK',message='updated successfully')
+    except Exception, e:
+        return jsonify(status='ERROR',message=str(e))
+
+#creating movers Review data
+@app.route('/addMoverReviews', methods = ['POST'])
+def addMoverReviews():
+    try:
+        '''post = {"firstName": "Mike",
+                "lastName": "Weener",
+                "email": "mikew@gmail.com",
+                "password": "1234",
+                "zipcode":10103,
+                "vehicle": "bmw",
+                "phone": "123456789",
+                "paymentTypes": "debit",
+                "profilePhoto": "mike.jpg",
+                "date": datetime.datetime.utcnow()}'''
+
+        #jsonData = request.json['info'] - comes from frontend
+        #firstName = json_data['firstName']
+
+        postId = moverReviews.insert_one(post).inserted_id
+
+        return jsonify(status='OK',message='inserted successfully')
+        #return postId
+
+    except Exception,e:
+        return jsonify(status='ERROR',message=str(e))
+
+#creating movers Review data
+@app.route('/addJobs', methods = ['POST'])
+def addJobs():
+    try:
+        '''post = {"firstName": "Mike",
+                "lastName": "Weener",
+                "email": "mikew@gmail.com",
+                "password": "1234",
+                "zipcode":10103,
+                "vehicle": "bmw",
+                "phone": "123456789",
+                "paymentTypes": "debit",
+                "profilePhoto": "mike.jpg",
+                "date": datetime.datetime.utcnow()}'''
+
+        #jsonData = request.json['info'] - comes from frontend
+        #firstName = json_data['firstName']
+
+        postId = jobs.insert_one(post).inserted_id
+
+        return jsonify(status='OK',message='inserted successfully')
+        #return postId
+
+    except Exception,e:
+        return jsonify(status='ERROR',message=str(e))
+
+#creating movers Review data
+@app.route('/addJobPhotos', methods = ['POST'])
+def addJobPhotos():
+    try:
+        '''post = {"firstName": "Mike",
+                "lastName": "Weener",
+                "email": "mikew@gmail.com",
+                "password": "1234",
+                "zipcode":10103,
+                "vehicle": "bmw",
+                "phone": "123456789",
+                "paymentTypes": "debit",
+                "profilePhoto": "mike.jpg",
+                "date": datetime.datetime.utcnow()}'''
+
+        #jsonData = request.json['info'] - comes from frontend
+        #firstName = json_data['firstName']
+
+        postId = jobPhotos.insert_one(post).inserted_id
+
+        return jsonify(status='OK',message='inserted successfully')
+        #return postId
+
+    except Exception,e:
+        return jsonify(status='ERROR',message=str(e))
+
+#creating movers Review data
+@app.route('/addOffers', methods = ['POST'])
+def addOffers():
+    try:
+        '''post = {"firstName": "Mike",
+                "lastName": "Weener",
+                "email": "mikew@gmail.com",
+                "password": "1234",
+                "zipcode":10103,
+                "vehicle": "bmw",
+                "phone": "123456789",
+                "paymentTypes": "debit",
+                "profilePhoto": "mike.jpg",
+                "date": datetime.datetime.utcnow()}'''
+
+        #jsonData = request.json['info'] - comes from frontend
+        #firstName = json_data['firstName']
+
+        postId = offers.insert_one(post).inserted_id
+
+        return jsonify(status='OK',message='inserted successfully')
+        #return postId
+
+    except Exception,e:
+        return jsonify(status='ERROR',message=str(e))
+
 
 @app.route('/addPhone', methods = ['POST'])
 def addPhone():
