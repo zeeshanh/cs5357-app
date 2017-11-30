@@ -67,6 +67,8 @@ def add_new_user():
 
     # Check that the request body has `username` and `password` properties
     body = request.get_json()
+    if body.get('type') is None:
+        raise BadRequest('missing user type')
     if body.get('username') is None:
         raise BadRequest('missing username property')
     if body.get('password') is None:
@@ -75,15 +77,6 @@ def add_new_user():
         raise BadRequest('missing first name')
     if body.get('last_name') is None:
         raise BadRequest('missing first name')
-    if body.get('zipcode') is None:
-        raise BadRequest('missing zip code')
-    else:
-        zipcode = body.get('zipcode')
-        if len(zipcode)!=5 or zipcode.isdigit()==False:
-            raise BadRequest("Invalid zip code")
-        zipcode = int(zipcode)
-    if body.get('payment') is None:
-        raise BadRequest('missing payment type')
     if body.get("phone") is None:
         phone = None
     else:
@@ -92,18 +85,26 @@ def add_new_user():
             raise BadRequest("Invalid phone number")
         phone = int(phone)
 
-    if body.get('type') is None:
-        raise BadRequest('missing user type')
-    if body.get("vehicle") is None:
-        raise BadRequest("Missing vehicle details")
+    if body.get('type') is 'mover': # Certain properties only required for mover
+        if body.get('zipcode') is None:
+            raise BadRequest('missing zip code')
+        else:
+            zipcode = body.get('zipcode')
+            if len(zipcode)!=5 or zipcode.isdigit()==False:
+                raise BadRequest("Invalid zip code")
+            zipcode = int(zipcode)
+        if body.get('payment') is None:
+            raise BadRequest('missing payment type')
+        if body.get("vehicle") is None:
+            raise BadRequest("Missing vehicle details")
 
     password_hash = security.generate_password_hash(body.get('password'))
 
-    newUser = {"firstName": body.get("first_name"),
+    newUser = {"first_name": body.get("first_name"),
                 "last_name":body.get("last_name"),
                 "username":body.get("username"),
                 "password": password_hash,
-                "zipcode":zipcode,
+                "zipcode":body.get("zipcode"),
                 "payment":body.get("payment"),
                 "phone": phone,
                 "vehicle": body.get("vehicle"),
@@ -364,8 +365,7 @@ def addOffer():
     if body.get('start_time') is None:
         raise BadRequest('missing start_time property')
 
-
-    jobId = body.get('job_id')
+    job_id = body.get('job_id')
     price =  body.get('price')
     start_time = body.get('start_time')
     userId = session.get('user')["_id"]["$oid"]
@@ -379,7 +379,7 @@ def addOffer():
         raise BadRequest("Price out of range")
 
     offer = {'userId': userId,
-                'jobId':jobId,
+                'jobId':job_id,
                 'price':price,
                 'start_time': start_time
                 }

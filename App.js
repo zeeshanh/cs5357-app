@@ -5,7 +5,47 @@ import DateTimePicker from 'react-native-modal-datetime-picker';
 
 var userType; // either mover or requester
 var validatedPhone = false; // keep track of whether phone has been validated
+var api = "http://127.0.0.1:8080";
 
+const sanitizeInput = (str) => {
+    // https://stackoverflow.com/questions/822452/strip-html-from-text-javascript
+    return str.trim().replace(/<(?:.|\n)*?>/gm, '');
+};
+
+const validateStr = (label, str, maxLen) => {
+    str = sanitizeInput(str);
+    if (str == "") {
+        return label + " cannot be blank";
+    } else if (str.length > maxLen) {
+        return label + " cannot be over " + maxLen + " characters";
+    } else {
+        return ""
+    }
+};
+
+const validateInt = (label, i, len) => {
+    i = sanitizeInput(i);
+    if (!(i)) {
+        return label + " cannot be blank";
+    } else if (!(/^\d+$/.test(i))) {
+        return label + " must be a number"
+    } else if (i.toString().length != len) {
+        return label + " must be " + len + " digits";
+    } else {
+        return ""
+    }
+};
+
+// Takes phone string and returns numbers
+const getPhoneFromInput = (input) => {
+    var re = /[0-9]/g;
+    phone = input.match(re);
+    if (phone) {
+        phone = phone.join("");
+        return phone;
+    }
+    return "";
+};
 
 /*--Entry screens: visible to movers and requesters--*/
 // 1. InitialOptionScreen: Choose to login or register as mover or requester
@@ -103,56 +143,26 @@ class RegisterScreen extends React.Component {
         const {navigate} = this.props.navigation;
         const isMover = userType == 'mover' ? true : false;
 
-        const sanitizeInput = (str) => {
-            // https://stackoverflow.com/questions/822452/strip-html-from-text-javascript
-            console.log(str);
-            return str.trim().replace(/<(?:.|\n)*?>/gm, '');
-        };
-
-        const validateStr = (label, str, maxLen) => {
-            str = sanitizeInput(str);
-            if (str == "") {
-                return label + " cannot be blank";
-            } else if (str.length > maxLen) {
-                return label + " cannot be over " + maxLen + " characters";
-            } else {
-                return ""
-            }
-        };
-
-        const validateInt = (label, i, len) => {
-            i = sanitizeInput(i);
-            if (i == "") {
-                return label + " cannot be blank";
-            } else if (i.length != len) {
-                return label + " must be " + len + " digits";
-            } else if (!(Number.isInteger(i))) {
-                return label + " must be a number"
-            } else {
-                return ""
-            }
-        };
-
         const submitForm = () => {
 
             /* -- Validate Form --*/
 
             this.setState({
                 firstNameError: validateStr("First name", this.state.firstName, 100),
-                lastNameError: validateStr("Last name", this.state.firstName, 100),
+                lastNameError: validateStr("Last name", this.state.lastName, 100),
                 usernameError: validateStr("Username", this.state.username, 50),
                 passwordError: validateStr("Password", this.state.password, 100),
-            });
+            }, () => {
 
-            if (isMover) {
-                this.setState({
-                    zipcodeError: validateInt("Zip code", this.state.firstName, 5),
-                    vehicleError: validateStr("Vehicle", this.state.vehicle, 100),
-                    paymentError: validateStr("Payment", this.state.payment, 50),
-                });
-            }
+                if (isMover) {
+                    this.setState({
+                        zipcodeError: validateInt("Zipcode", this.state.zipcode, 5),
+                        vehicleError: validateStr("Vehicle", this.state.vehicle, 100),
+                        paymentError: validateStr("Payment", this.state.payment, 50),
+                    });
+                }
 
-            if (this.state.firstNameError == ""
+                if (this.state.firstNameError == ""
                     && this.state.lastNameError == ""
                     && this.state.usernameError == ""
                     && this.state.passwordError == ""
@@ -161,40 +171,41 @@ class RegisterScreen extends React.Component {
                     && this.state.paymentError == ""
                 ) {
 
-                const validData = {
-                    "type": userType,
-                    "firstName": this.state.firstName,
-                    "lastName": this.state.lastName,
-                    "username": this.state.username,
-                    "password": this.state.password,
-                    "zipcode": this.state.zipcode,
-                    "vehicle": this.state.vehicle,
-                    "payment": this.state.payment,
+                    const validData = {
+                        "type": userType,
+                        "first_name": this.state.firstName,
+                        "last_name": this.state.lastName,
+                        "username": this.state.username,
+                        "password": this.state.password,
+                        "zipcode": this.state.zipcode,
+                        "vehicle": this.state.vehicle,
+                        "payment": this.state.payment,
+                    }
+
+                    // POST new user to database
+
+                    fetch(api + "/profile", {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(validData)
+                    }).then(response => {
+                        if (response.status === 201) {
+                            navigate("GetCode");
+                        } else {
+                            console.log(response);
+                            throw new Error('Something went wrong on api server!');
+                        }
+                    })
+
+                } else {
+                    this.setState({allErrors: "Please fix errors."});
+                    return false;
                 }
 
-                // POST new user to database
-                // TODO: add correct url
-                // TODO: better error handling
-
-                fetch('http://localhost:8000/profile/', {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(validData)
-                }).then(response => {
-                    if (response.status === 200) {
-                        return true;
-                    } else {
-                        throw new Error('Something went wrong on api server!');
-                    }
-                })
-
-            } else {
-                this.setState({allErrors: "Please fix errors."});
-                return false;
-            }
+            });
         };
 
         return (
@@ -241,7 +252,7 @@ class RegisterScreen extends React.Component {
 
                     <View style={styles.formField}>
                     <TextInput
-                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
+                        style={{height: 30, width: "100%", marginTop:10, marginBottom:5}}
                         placeholder="Password"
                         secureTextEntry={true}
                         onChangeText={(text) => this.setState({
@@ -256,6 +267,11 @@ class RegisterScreen extends React.Component {
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
                         placeholder="Zip Code"
+                        onChangeText={(text) => this.setState({
+                                    zipcode: text,
+                                    zipcodeError: validateInt("Zipcode", text, 5)
+                                })
+                            }
                     /><Text style={styles.errorText}>{ this.state.zipcodeError }</Text>
                     </View>
 
@@ -263,6 +279,11 @@ class RegisterScreen extends React.Component {
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
                         placeholder="Vehicle Type"
+                        onChangeText={(text) => this.setState({
+                                    vehicle: text,
+                                    vehicleError: validateStr("Vehicle", text, 100)
+                                })
+                            }
                     /><Text style={styles.errorText}>{ this.state.vehicleError }</Text>
                     </View>
 
@@ -270,6 +291,11 @@ class RegisterScreen extends React.Component {
                     <TextInput
                         style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
                         placeholder="Payment Types Accepted"
+                        onChangeText={(text) => this.setState({
+                                    payment: text,
+                                    paymentError: validateStr("Payment", text, 100)
+                                })
+                            }
                     /><Text style={styles.errorText}>{ this.state.paymentError }</Text>
                     </View>
 
@@ -385,14 +411,29 @@ class GetCodeScreen extends React.Component {
         header: null
     };
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            phone: '',
+            phoneError: '',
+        };
+    }
+
     render() {
 
         const { navigate } = this.props.navigation;
 
         const validatePhone = () => {
-            // TODO: validate phone number
-            // TODO: send SMS to validated number
-            return true;
+            // Validate phone number
+            this.setState({phoneError: validateInt("Phone", this.state.phone, 10)}, () => {
+                if (this.state.phoneError == "") {
+                    // TODO: send SMS to validated number
+                    return true;
+                }
+                return false;
+            });
+
+
         };
 
         return (
@@ -401,12 +442,20 @@ class GetCodeScreen extends React.Component {
                     style={{fontSize:20, color: "#666", textAlign: 'center', margin: 10}}
                 >Please validate your phone number</Text>
 
+                <View style={{height: 100, margin: 20}}>
                 <TextInput
-                    style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
+                    style={{height: 40, width: 200, textAlign: 'center'}}
                     placeholder="Enter Phone Number"
-                />
+                    onChangeText={(text) => {
+                        this.setState({
+                            phone: getPhoneFromInput(text),
+                        });
+                    }}
+                /><Text style={[styles.errorText, {textAlign: 'center'}]}>{ this.state.phoneError }</Text>
+                </View>
+
                 <TouchableOpacity
-                    onPress={() => validatePhone ? navigate('EnterCode') : false}
+                    onPress={() => validatePhone() ? navigate('EnterCode') : false}
                     style={styles.bigButton}
                 ><Text style={{color: "#fff", fontSize: 20}}>Get Code</Text></TouchableOpacity>
 
