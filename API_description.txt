@@ -55,10 +55,12 @@
     price: float
     start_time: datetime
 
+/getOffers/job_id: GET
+
 /acceptOffer: POST
-    jobID: int
-    offerID: int
-    
+    jobID: str
+    offerID: str
+
 /review: POST
-    moverID: int
+    moverID: str
     rating: int
