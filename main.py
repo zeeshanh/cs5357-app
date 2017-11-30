@@ -100,7 +100,8 @@ def add_new_user():
 
     password_hash = security.generate_password_hash(body.get('password'))
 
-    newUser = {"first_name": body.get("first_name"),
+    newUser = { "type": body.get("type"),
+                "first_name": body.get("first_name"),
                 "last_name":body.get("last_name"),
                 "username":body.get("username"),
                 "password": password_hash,
@@ -206,6 +207,8 @@ def login():
 
     # Check that the request body has `username` and `password` properties
     body = request.get_json()
+    if body.get('type') is None:
+        raise BadRequest('missing user type')
     if body.get('username') is None:
         raise BadRequest('missing username property')
     if body.get('password') is None:
@@ -219,6 +222,8 @@ def login():
     if not security.check_password_hash(user['password'], body.get('password')):
         session.clear()
         raise BadRequest('Password does not match')
+    # TODO: check that the user type matches
+    # We don't want someone who registers as one type to be able to log in as the other type
 
     # this little trick is necessary because MongoDb sends back objects that are
     # CLOSE to json, but not actually JSON (principally the ObjectId is not JSON serializable)

@@ -347,11 +347,9 @@ class LoginScreen extends React.Component {
                 };
 
                 // POST username and password to database
-                // TODO: add correct url
-                // TODO: better error handling
                 // TODO: start session/establish somehow that the user is logged in
 
-                fetch('http://localhost:8000/login/', {
+                fetch(api + '/login', {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -360,8 +358,13 @@ class LoginScreen extends React.Component {
                     body: JSON.stringify(validData)
                 }).then(response => {
                     if (response.status === 200) {
-                        return true;
+                        if (userType == 'requester') {
+                            navigate('Requester');
+                        } else if (userType == 'mover') {
+                            navigate('Mover');
+                        }
                     } else {
+                        console.log(response);
                         throw new Error('Something went wrong on api server!');
                     }
                 });
@@ -390,13 +393,7 @@ class LoginScreen extends React.Component {
                     onChangeText={(text) => this.setState({password: text})}
                 />
                 <TouchableOpacity
-                    onPress={() => {
-                        if (userType == 'requester' && validateLogin()) {
-                            navigate('Requester');
-                        } else if (userType == 'mover' && validateLogin()){
-                            navigate('Mover');
-                        }
-                    }}
+                    onPress={() => validateLogin()}
                     style={styles.bigButton}
                 ><Text style={{color: "#fff", fontSize: 20}}>Log In</Text></TouchableOpacity>
                 <Text style={styles.errorText}> { this.state.error }</Text>
@@ -427,8 +424,25 @@ class GetCodeScreen extends React.Component {
             // Validate phone number
             this.setState({phoneError: validateInt("Phone", this.state.phone, 10)}, () => {
                 if (this.state.phoneError == "") {
-                    // TODO: send SMS to validated number
-                    return true;
+
+                    const validData = {"phone": this.state.phone};
+
+                    // Send SMS to validated number
+                    fetch(api + '/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(validData)
+                }).then(response => {
+                    if (response.status === 200) {
+                        navigate("EnterCode");
+                    } else {
+                        console.log(response);
+                        throw new Error('Something went wrong on api server!');
+                    }
+                });
                 }
                 return false;
             });
@@ -455,7 +469,7 @@ class GetCodeScreen extends React.Component {
                 </View>
 
                 <TouchableOpacity
-                    onPress={() => validatePhone() ? navigate('EnterCode') : false}
+                    onPress={() => validatePhone()}
                     style={styles.bigButton}
                 ><Text style={{color: "#fff", fontSize: 20}}>Get Code</Text></TouchableOpacity>
 
@@ -481,39 +495,73 @@ class EnterCodeScreen extends React.Component {
         header: null
     };
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            code: '',
+            codeError: '',
+        };
+    }
+
     render() {
-        const { navigate } = this.props.navigation;
+        const {navigate} = this.props.navigation;
 
         const validateCode = () => {
-            // TODO: validate code
-            return true;
+            // Validate code sent by SMS
+            this.setState({codeError: validateStr("Code", this.state.code, 100)}, () => {
+                if (this.state.codeError == "") {
+
+                    const validData = {"code": this.state.code};
+
+                    // Send SMS to validated number
+                    fetch(api + '/verify', {
+                        method: 'PUT',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(validData)
+                    }).then(response => {
+                        if (response.status === 200) {
+                            if (userType == 'requester') {
+                                validatedPhone = true;
+                                navigate('Requester');
+                            } else {
+                                validatedPhone = true;
+                                navigate('Mover');
+                            }
+                        } else {
+                            console.log(response);
+                            throw new Error('Something went wrong on api server!');
+                        }
+                    });
+                }
+                return false;
+            });
         };
 
         return (
             <View style={styles.container}>
                 <Text
-                    style={{fontSize:30, color: "#666", textAlign: 'center', margin: 10}}
+                    style={{fontSize: 30, color: "#666", textAlign: 'center', margin: 10}}
                 >Thanks for entering your phone.</Text>
                 <Text
-                    style={{fontSize:20, color: "#666", textAlign: 'center',  margin: 10}}
+                    style={{fontSize: 20, color: "#666", textAlign: 'center', margin: 10}}
                 >We have sent you a validation code. Please enter it below.</Text>
-                <TextInput
-                    style={{height: 40, width: 200, margin:30, textAlign: 'center'}}
-                    placeholder="Enter Code"
-                />
+                <View>
+                    <TextInput
+                        style={{height: 40, width: 200, margin: 30, textAlign: 'center'}}
+                        placeholder="Enter Code"
+                        onChangeText={(text) => {
+                            this.setState({code: text});
+                        }}
+                    /><Text style={styles.errorText}>{this.state.codeError}</Text>
+                </View>
 
                 <TouchableOpacity
-                    onPress={() => {
-                        if (userType == 'requester' && validateCode) {
-                            validatedPhone = true;
-                            navigate('Requester');
-                        } else if (validateCode) {
-                            validatedPhone = true;
-                            navigate('Mover');
-                        }
-                    }}
+                    onPress={() => validateCode()}
                     style={styles.bigButton}
-                ><Text style={{color: "#fff", fontSize: 20}}>Join</Text></TouchableOpacity>
+                ><Text style={{color: "#fff", fontSize: 20}}>Validate</Text></TouchableOpacity>
             </View>
         );
     }
