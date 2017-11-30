@@ -7,7 +7,6 @@ var userType; // either mover or requester
 var validatedPhone = false; // keep track of whether phone has been validated
 
 
-
 /*--Entry screens: visible to movers and requesters--*/
 // 1. InitialOptionScreen: Choose to login or register as mover or requester
 // 2. RegisterScreen: Register an account
@@ -177,7 +176,7 @@ class RegisterScreen extends React.Component {
                 // TODO: add correct url
                 // TODO: better error handling
 
-                fetch('http://localhost:8000/signup/', {
+                fetch('http://localhost:8000/profile/', {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -253,18 +252,27 @@ class RegisterScreen extends React.Component {
                     /><Text style={styles.errorText}>{ this.state.passwordError }</Text>
                     </View>
 
+                    <View style={styles.formField}>
                     <TextInput
-                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
                         placeholder="Zip Code"
-                    />
+                    /><Text style={styles.errorText}>{ this.state.zipcodeError }</Text>
+                    </View>
+
+                    <View style={styles.formField}>
                     <TextInput
-                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
                         placeholder="Vehicle Type"
-                    />
+                    /><Text style={styles.errorText}>{ this.state.vehicleError }</Text>
+                    </View>
+
+                    <View style={styles.formField}>
                     <TextInput
-                        style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
+                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5, display: isMover ? 'flex' : 'none'}}
                         placeholder="Payment Types Accepted"
-                    />
+                    /><Text style={styles.errorText}>{ this.state.paymentError }</Text>
+                    </View>
+
                     <Text style={{height: 40, width: "90%", marginTop: 30, margin:10}}>📷 Upload Profile Photo</Text>
 
                     <TouchableOpacity
@@ -286,13 +294,54 @@ class LoginScreen extends React.Component {
         header: null
     };
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            username: '',
+            password: '',
+            error: '',
+        };
+    }
+
     render() {
 
         const { navigate } = this.props.navigation;
 
         const validateLogin = () => {
-            // TODO: validate login credentials (Try to GET user from DB)
-            return true;
+            // Validate login credentials
+            if (this.state.username == "" || this.state.password == "") {
+                this.setState({error: "Username and password cannot be blank"});
+                return false;
+
+            } else {
+                validData = {
+                    "type": userType,
+                    "username": this.state.username,
+                    "password": this.state.password,
+                };
+
+                // POST username and password to database
+                // TODO: add correct url
+                // TODO: better error handling
+                // TODO: start session/establish somehow that the user is logged in
+
+                fetch('http://localhost:8000/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(validData)
+                }).then(response => {
+                    if (response.status === 200) {
+                        return true;
+                    } else {
+                        throw new Error('Something went wrong on api server!');
+                    }
+                });
+
+                return true;
+            }
         };
 
         return (
@@ -306,22 +355,25 @@ class LoginScreen extends React.Component {
                 <TextInput
                     style={{height: 40, width: 200, margin:10, width: "90%", textAlign: 'center'}}
                     placeholder="Username"
+                    onChangeText={(text) => this.setState({username: text})}
                 />
                 <TextInput
                     style={{height: 40, width: 200, margin:10, width: "90%", textAlign: 'center'}}
                     placeholder="Password"
                     secureTextEntry={true}
+                    onChangeText={(text) => this.setState({password: text})}
                 />
                 <TouchableOpacity
                     onPress={() => {
-                        if (userType == 'requester' && validateLogin) {
+                        if (userType == 'requester' && validateLogin()) {
                             navigate('Requester');
-                        } else if (userType == 'mover' && validateLogin){
+                        } else if (userType == 'mover' && validateLogin()){
                             navigate('Mover');
                         }
                     }}
                     style={styles.bigButton}
                 ><Text style={{color: "#fff", fontSize: 20}}>Log In</Text></TouchableOpacity>
+                <Text style={styles.errorText}> { this.state.error }</Text>
             </View>
         );
     }

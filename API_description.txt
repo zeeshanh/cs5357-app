@@ -1,56 +1,67 @@
-/signup: POST
+/profile: POST
 	type: str
-	First Name: str
-	Last Name: str
+	first_name: str
+	last_name: str
 	username: str
 	password: str
-	zip code: 5-digit int
+	zipcode: 5-digit int
 	vehicle: str
 	payment: str
-	photo
+	photo: image (blob?)
+	phone: str
+	verified_phone: boolean
+
+/profile: GET
+    Return: all profile data for currently logged in user
+
+/profile: PUT
+    update profile data for currently logged in user
+    can include any/all of the following:
+    first_name: str
+	last_name: str
+	username: str
+	password: str
+	zipcode: 5-digit int
+	vehicle: str
+	payment: str
+	photo: image (blob?)
+	phone: str
 
 /login: POST
-	username:
-	password:
-	type:
+	username: str
+	password: str
+	type: str
 
 /logout: POST
-
-/addphone: POST
-	number: str
 
 /verify: POST
 	code: str
 
 /jobs: POST
-	start:
-	end:
-	timestart:
-	endtime:
-	max price:
+	start_address: str
+	end_address: str
+	start_time: datetime
+	end_time: datetime
+	max_price: float
 
 /jobs: GET
 	return all open jobs
 
-/getJob: GET (jobID) (optional)
-	return job details
+/jobs/id: GET
+	return job details for job with a specific id
 
-/addOffer: POST 
-	jobId:
-	price:
-	startTime:
-
-/getProfile:GET 
-	
-/updateProfile: POST
+/addOffer: POST
+	job_id: int
+	price: float
+	start_time: datetime
 
 /acceptOffer: POST
-	jobID
-	offerID
+	jobID: int
+	offerID: int
 
 /review: POST
-	moverID:
-	rating:
+	moverID: int
+	rating: int
 
 
 
