@@ -1,15 +1,15 @@
 /profile: POST
-	type: str
-	first_name: str
-	last_name: str
-	username: str
-	password: str
-	zipcode: 5-digit int
-	vehicle: str
-	payment: str
-	photo: image (blob?)
-	phone: str
-	verified_phone: boolean
+    type: str
+    first_name: str
+    last_name: str
+    username: str
+    password: str
+    zipcode: 5-digit int
+    vehicle: str
+    payment: str
+    photo: image (blob?)
+    phone: str
+    verified_phone: boolean
 
 /profile: GET
     Return: all profile data for currently logged in user
@@ -18,52 +18,49 @@
     update profile data for currently logged in user
     can include any/all of the following:
     first_name: str
-	last_name: str
-	username: str
-	password: str
-	zipcode: 5-digit int
-	vehicle: str
-	payment: str
-	photo: image (blob?)
-	phone: str
+    last_name: str
+    username: str
+    password: str
+    zipcode: 5-digit int
+    vehicle: str
+    payment: str
+    photo: image (blob?)
+    phone: str
 
 /login: POST
-	username: str
-	password: str
-	type: str
+    username: str
+    password: str
+    type: str
 
 /logout: POST
 
 /verify: POST
-	code: str
+    code: str
 
 /jobs: POST
-	start_address: str
-	end_address: str
-	start_time: datetime
-	end_time: datetime
-	max_price: float
+    start_address: str
+    end_address: str
+    start_time: datetime
+    end_time: datetime
+    max_price: float
 
 /jobs: GET
-	return all open jobs
+    return all open jobs
 
 /jobs/id: GET
-	return job details for job with a specific id
+    return job details for job with a specific id
 
 /addOffer: POST
-	job_id: int
-	price: float
-	start_time: datetime
+    job_id: int
+    price: float
+    start_time: datetime
+
+/getOffers/job_id: GET
 
 /acceptOffer: POST
-	jobID: int
-	offerID: int
+    jobID: str
+    offerID: str
 
 /review: POST
-	moverID: int
-	rating: int
-
-
-
-
-
+    moverID: str
+    rating: int
