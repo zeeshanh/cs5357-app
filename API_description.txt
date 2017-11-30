@@ -1,11 +1,12 @@
 /signup: POST
-	type : str
-	First Name : str
-	Last Name : str
-	username : str
-	password
-	zip code
-	vehicle
+	type: str
+	First Name: str
+	Last Name: str
+	username: str
+	password: str
+	zip code: 5-digit int
+	vehicle: str
+	payment: str
 	photo
 
 /login: POST

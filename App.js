@@ -6,6 +6,8 @@ import DateTimePicker from 'react-native-modal-datetime-picker';
 var userType; // either mover or requester
 var validatedPhone = false; // keep track of whether phone has been validated
 
+
+
 /*--Entry screens: visible to movers and requesters--*/
 // 1. InitialOptionScreen: Choose to login or register as mover or requester
 // 2. RegisterScreen: Register an account
@@ -75,38 +77,182 @@ class RegisterScreen extends React.Component {
         header: null
     };
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            firstName: '',
+            lastName: '',
+            username: '',
+            password: '',
+            zipcode: '',
+            vehicle: '',
+            payment: '',
+
+            firstNameError: '',
+            lastNameError: '',
+            usernameError: '',
+            passwordError: '',
+            zipcodeError: '',
+            vehicleError: '',
+            paymentError: '',
+
+            allErrors: '',
+        };
+    }
+
     render() {
-        const { navigate } = this.props.navigation;
+        const {navigate} = this.props.navigation;
         const isMover = userType == 'mover' ? true : false;
 
+        const sanitizeInput = (str) => {
+            // https://stackoverflow.com/questions/822452/strip-html-from-text-javascript
+            console.log(str);
+            return str.trim().replace(/<(?:.|\n)*?>/gm, '');
+        };
+
+        const validateStr = (label, str, maxLen) => {
+            str = sanitizeInput(str);
+            if (str == "") {
+                return label + " cannot be blank";
+            } else if (str.length > maxLen) {
+                return label + " cannot be over " + maxLen + " characters";
+            } else {
+                return ""
+            }
+        };
+
+        const validateInt = (label, i, len) => {
+            i = sanitizeInput(i);
+            if (i == "") {
+                return label + " cannot be blank";
+            } else if (i.length != len) {
+                return label + " must be " + len + " digits";
+            } else if (!(Number.isInteger(i))) {
+                return label + " must be a number"
+            } else {
+                return ""
+            }
+        };
+
         const submitForm = () => {
-            // TODO: Validate form
-            // TODO: POST validated form data to DB to create new user account
-            return true;
+
+            /* -- Validate Form --*/
+
+            this.setState({
+                firstNameError: validateStr("First name", this.state.firstName, 100),
+                lastNameError: validateStr("Last name", this.state.firstName, 100),
+                usernameError: validateStr("Username", this.state.username, 50),
+                passwordError: validateStr("Password", this.state.password, 100),
+            });
+
+            if (isMover) {
+                this.setState({
+                    zipcodeError: validateInt("Zip code", this.state.firstName, 5),
+                    vehicleError: validateStr("Vehicle", this.state.vehicle, 100),
+                    paymentError: validateStr("Payment", this.state.payment, 50),
+                });
+            }
+
+            if (this.state.firstNameError == ""
+                    && this.state.lastNameError == ""
+                    && this.state.usernameError == ""
+                    && this.state.passwordError == ""
+                    && this.state.zipcodeError == ""
+                    && this.state.vehicleError == ""
+                    && this.state.paymentError == ""
+                ) {
+
+                const validData = {
+                    "type": userType,
+                    "firstName": this.state.firstName,
+                    "lastName": this.state.lastName,
+                    "username": this.state.username,
+                    "password": this.state.password,
+                    "zipcode": this.state.zipcode,
+                    "vehicle": this.state.vehicle,
+                    "payment": this.state.payment,
+                }
+
+                // POST new user to database
+                // TODO: add correct url
+                // TODO: better error handling
+
+                fetch('http://localhost:8000/signup/', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(validData)
+                }).then(response => {
+                    if (response.status === 200) {
+                        return true;
+                    } else {
+                        throw new Error('Something went wrong on api server!');
+                    }
+                })
+
+            } else {
+                this.setState({allErrors: "Please fix errors."});
+                return false;
+            }
         };
 
         return (
                 <View style={styles.container}>
                     <Text style={styles.h1}>Register as {userType}</Text>
                     <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
+                        <View style={{ width: "45%", height: 40}}>
                         <TextInput
-                            style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}
+                            style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
                             placeholder="First Name"
+                            onChangeText={(text) => this.setState({
+                                    firstName: text,
+                                    firstNameError: validateStr("First name", text, 100)
+                                })
+                            }
                         />
+                        <Text style={styles.errorText}>{ this.state.firstNameError }</Text>
+                        </View>
+
+                        <View style={{ width: "45%", height: 40}}>
                         <TextInput
-                            style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}
+                            style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
                             placeholder="Last Name"
-                        />
+                            onChangeText={(text) => this.setState({
+                                    lastName: text,
+                                    lastNameError: validateStr("Last name", text, 100)
+                                })
+                            }
+                        /><Text style={styles.errorText}>{ this.state.lastNameError }</Text>
+                        </View>
                     </View>
+
+                    <View style={styles.formField}>
                     <TextInput
-                        style={styles.formField}
+                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
                         placeholder="Username"
-                    />
+                        onChangeText={(text) => this.setState({
+                            username: text,
+                            usernameError: validateStr("Username", text, 50)
+                        })
+                        }
+                    /><Text style={styles.errorText}>{ this.state.usernameError }</Text>
+                    </View>
+
+                    <View style={styles.formField}>
                     <TextInput
-                        style={styles.formField}
+                        style={{height: 40, width: "100%", marginTop:10, marginBottom:5}}
                         placeholder="Password"
                         secureTextEntry={true}
-                    />
+                        onChangeText={(text) => this.setState({
+                                    password: text,
+                                    passwordError: validateStr("Password", text, 100)
+                                })
+                            }
+                    /><Text style={styles.errorText}>{ this.state.passwordError }</Text>
+                    </View>
+
                     <TextInput
                         style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
                         placeholder="Zip Code"
@@ -119,7 +265,7 @@ class RegisterScreen extends React.Component {
                         style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
                         placeholder="Payment Types Accepted"
                     />
-                    <Text style={{height: 40, width: "90%", margin:10}}>📷 Upload Profile Photo</Text>
+                    <Text style={{height: 40, width: "90%", marginTop: 30, margin:10}}>📷 Upload Profile Photo</Text>
 
                     <TouchableOpacity
                         onPress={() => submitForm() ? navigate('GetCode') : false}
@@ -127,9 +273,11 @@ class RegisterScreen extends React.Component {
                     >
                         <Text style={{color: "#fff", fontSize: 20}}>Create Account</Text>
                     </TouchableOpacity>
+                    <Text style={styles.errorText}>{ this.state.allErrors }</Text>
                 </View>
         );
-    }
+}
+
 }
 
 class LoginScreen extends React.Component {
@@ -1187,6 +1335,10 @@ const styles = StyleSheet.create({
         width: "90%",
         marginTop:10,
         marginBottom:10,
+    },
+    errorText: {
+        color: '#b20808',
+        fontSize: 10,
     }
 
 
