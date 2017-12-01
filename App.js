@@ -451,7 +451,7 @@ class GetCodeScreen extends React.Component {
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
-                    },
+                    }, credentials: 'same-origin',
                     body: JSON.stringify(validData)
                 }).then(response => {
                     if (response.status === 200) {
@@ -533,11 +533,12 @@ class EnterCodeScreen extends React.Component {
 
                     // Send SMS to validated number
                     fetch(api + '/verify', {
-                        method: 'PUT',
+                        method: 'POST',
                         headers: {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json',
                         },
+                        credentials: 'same-origin',
                         body: JSON.stringify(validData)
                     }).then(response => {
                         if (response.status === 200) {
@@ -549,7 +550,7 @@ class EnterCodeScreen extends React.Component {
                                 navigate('Mover');
                             }
                         } else {
-                            console.log(response);
+                            console.log(JSON.stringify(response));
                             throw new Error('Something went wrong on api server!');
                         }
                     });
