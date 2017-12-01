@@ -36,6 +36,17 @@ const validateInt = (label, i, len) => {
     }
 };
 
+const validatePrice = (label, price) => {
+    i = sanitizeInput(price);
+    if (!(i)) {
+        return label + " cannot be blank";
+    } else if (!(/^\d+\.?\d{0,2}$/.test(i))) {
+        return label + " must be a number";
+    } else {
+        return "";
+    }
+}
+
 // Takes phone string and returns numbers
 const getPhoneFromInput = (input) => {
     var re = /[0-9]/g;
@@ -598,7 +609,17 @@ class RequestFormScreen extends React.Component {
             maximumPrice: '',
             description: '',
             timePickerVisible: false,
-            activeField: null
+            activeField: null,
+            submitted: false,
+
+            startAddressError: '',
+            endAddressError: '',
+            startTimeError: '',
+            endTimeError: '',
+            maximumPriceError: '',
+            descriptionError: '',
+
+            allErrors: '',
         };
     }
 
@@ -606,41 +627,62 @@ class RequestFormScreen extends React.Component {
         const { navigate } = this.props.navigation;
 
         const validateForm = () => {
-            var errors = "";
 
-            if (this.state.startAddress.length == 0) {
-                errors += "Start address cannot be empty\n";
-            }
+            // Validate job
 
-            if (this.state.endAddress.length == 0) {
-                errors += "End address cannot be empty\n";
-            }
+            this.setState({
+                startAddressError: validateStr("Start address", this.state.startAddress, 100),
+                endAddressError: validateStr("End address", this.state.endAddress, 100),
+                startTimeError: validateStr("Start time", this.state.startTime, 50),
+                endTimeError: validateStr("End time", this.state.endTime, 50),
+                maximumPriceError: validatePrice("Max price", this.state.endTime, 50),
+                descriptionError: validateStr("Description", this.state.description, 500),
+            }, () => {
 
-            if (this.state.startTime.length == 0) {
-                errors += "Start time cannot be empty\n";
-            }
+                if (this.state.startAddressError == ""
+                    && this.state.endAddressError == ""
+                    && this.state.startTimeError == ""
+                    && this.state.endTimeError == ""
+                    && this.state.maximumPriceError == ""
+                    && this.state.descriptionError == ""
+                ) {
 
-            if (this.state.endTime.length == 0) {
-                errors += "End time cannot be empty\n";
-            }
+                    const validData = {
+                        "start_time": this.state.startTime,
+                        "end_time": this.state.endTime,
+                        "start_address": this.state.startAddress,
+                        "end_address": this.state.endAddress,
+                        "max_price": this.state.maximumPrice,
+                        "description": this.state.description,
+                    };
 
-            if (this.state.maximumPrice.length == 0) {
-                errors += "Maximum price cannot be empty\n";
-            } else if (!(/^\$?\d{1,10}(?:\.\d{1,4})?$/.test(this.state.maximumPrice))) {
-                errors += "Maximum price is not a valid price format\n";
-            }
+                    console.log(validData);
 
-            if (this.state.description.length == 0) {
-                errors += "Description cannot be empty\n";
-            }
+                    // POST new job to database
 
-            if (errors) {
-                alert("Please fix these errors:\n\n" + errors);
-            } else {
-                return true;
-            }
+                    fetch(api + "/jobs", {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(validData)
+                    }).then(response => {
+                        if (response.status === 200) {
+                            this.setState({submitted: true});
+                            navigate("MoverList");
+                        } else {
+                            alert(JSON.stringify(response));
+                            throw new Error('Something went wrong on api server!');
+                        }
+                    })
 
-            // TODO: POST validated form data to DB
+                } else {
+                    this.setState({allErrors: "Please fix errors."});
+                    return false;
+                }
+
+            });
         };
 
         return (
@@ -664,47 +706,83 @@ class RequestFormScreen extends React.Component {
                         <Text style={styles.h1}>Submit a new job request</Text>
                     </View>
 
+                    <View style={styles.formField}>
+                        <Text style={styles.jobDetailDesc}>Start Address</Text>
                     <TextInput
-                        style={styles.formField}
-                        placeholder="Start Address"
+                        style={{ display: this.state.submitted ? "none" : "flex" }}
+                        placeholder="1 Main St, Anytown, NY, 10101"
                         onChangeText={(text) => this.setState({startAddress: text})}
-                    />
+                    /><Text style={styles.errorText}>{ this.state.startAddressError } </Text>
+                        <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.startAddress } </Text>
+                    </View>
+
+                    <View style={styles.formField}>
+                        <Text style={styles.jobDetailDesc}>End Address</Text>
                     <TextInput
-                        style={styles.formField}
-                        placeholder="End Address"
+                        style={{ display: this.state.submitted ? "none" : "flex" }}
+                        placeholder="1 Main St, Anytown, NY, 10101"
                         onChangeText={(text) => this.setState({endAddress: text})}
-                    />
+                    /><Text style={styles.errorText}>{ this.state.endAddressError } </Text>
+                        <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.endAddress } </Text>
+                     </View>
+
                     <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
+                        <View style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}>
+                            <Text style={styles.jobDetailDesc}>Start Time</Text>
                         <TextInput
-                            style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}
-                            placeholder="Start Time"
+                            style={{ display: this.state.submitted ? "none" : "flex" }}
+                            placeholder="1:00pm"
                             onFocus={() => this.setState({timePickerVisible: true, activeField: "startTime"})}
                             onChangeText={(text) => this.setState({startTime: text})}
-                        />
+                        /><Text style={styles.errorText}>{ this.state.startTimeError } </Text>
+                            <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.startTime } </Text>
+                        </View>
+
+                        <View style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}>
+                            <Text style={styles.jobDetailDesc}>End Time</Text>
                         <TextInput
-                            style={{height: 40, width: "45%", marginTop:10, marginBottom:10}}
-                            placeholder="End Time"
+                            style={{ display: this.state.submitted ? "none" : "flex" }}
+                            placeholder="6:00pm"
                             onFocus={() => this.setState({timePickerVisible: true, activeField: "endTime"})}
                             onChangeText={(text) => this.setState({endTime: text})}
-                        />
+                        /><Text style={styles.errorText}>{ this.state.endTimeError } </Text>
+                            <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.endTime } </Text>
+                        </View>
                     </View>
+
+                    <View style={styles.formField}>
+                        <Text style={styles.jobDetailDesc}>Maximum Price</Text>
                     <TextInput
-                        style={styles.formField}
-                        placeholder="Maximum Price"
+                        style={{ display: this.state.submitted ? "none" : "flex" }}
+                        placeholder="500.00"
                         onChangeText={(text) => this.setState({maximumPrice: text})}
-                    />
+                    /><Text style={styles.errorText}>{ this.state.maximumPriceError } </Text>
+                        <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.maximumPrice } </Text>
+                    </View>
+
+                    <View style={styles.formField}>
+                        <Text style={styles.jobDetailDesc}>Description of the job</Text>
                     <TextInput
-                        style={styles.formField}
-                        placeholder="Describe the job"
+                        style={{ display: this.state.submitted ? "none" : "flex" }}
+                        placeholder="Volume of items, type of items, etc"
                         onChangeText={(text) => this.setState({description: text})}
-                    />
+                    /><Text style={styles.errorText}>{ this.state.descriptionError } </Text>
+                        <Text style={{ display: this.state.submitted ? "flex" : "none" }}>{ this.state.description } </Text>
+                    </View>
+
                     <Text style={{height: 40, width: "90%", margin:10}}>📷 Upload Photos</Text>
 
                     <View style={styles.grayFooter}>
                         <TouchableOpacity
+
                             onPress={() => validateForm() ? navigate('Movers') : false}
-                            style={styles.bigButton}
+                            style={[styles.bigButton, {display: this.state.submitted ? "none" : "flex" }]}
                         ><Text style={{color: "#fff", fontSize: 20}}>Find Movers</Text></TouchableOpacity>
+
+                        <View style={{display: this.state.submitted ? "flex" : "none", alignItems: "center"}}>
+                        <Text style={{margin:10, fontSize:20, color: "#00796B" }}>Job Submitted Successfully!</Text>
+                        <Text style={{marginTop:10, margin: 20, marginBottom: 30, fontSize:14, color: "#666"}}>Check the movers list to see if any movers have placed an offer.</Text>
+                        </View>
                     </View>
                 </View>
             </ScrollView>
@@ -996,7 +1074,7 @@ class ProfileScreen extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            // TODO: get profile data from DB
+            // TODO: get profile photo as well
             firstName: "",
             lastName: "",
             profilePhoto: require("./img/jeff.png"),
@@ -1056,7 +1134,15 @@ class ProfileScreen extends React.Component {
 
         const cancelUpdateProfile = () => {
             // TODO: Revert all fields to original state
-            return true;
+            this.setState({
+                firstName: this.state.first_name,
+                lastName: this.state.last_name,
+                username: this.state.username,
+                password: this.state.password,
+                zipCode: this.state.zipcode,
+                vehicle: this.state.vehicle,
+                payments: this.state.payment,
+            });
         };
 
         const updateProfilePhoto = () => {

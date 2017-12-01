@@ -270,6 +270,8 @@ def create_job():
         raise BadRequest("missing start address property")
     if body.get('end_address') is None:
         raise BadRequest("missing end address property")
+    if body.get("description") is None:
+        raise BadRequest("missing description property")
     if body.get("max_price") is None:
         raise BadRequest("missing max price property")
     else:
@@ -285,6 +287,7 @@ def create_job():
                     'start_address': body.get('start_address'),
                     'end_address': body.get("end_address"),
                     'max_price': max_price,
+                    'description': body.get("description"),
                     'job_status':'Open'}
 
     job_record.update({'user': session['user']['_id']['$oid']})
