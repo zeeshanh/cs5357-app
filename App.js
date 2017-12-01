@@ -991,29 +991,52 @@ class ProfileScreen extends React.Component {
         super(props);
         this.state = {
             // TODO: get profile data from DB
-            data: {
-                firstName: "Joe",
-                lastName: "McMover",
-                profilePhoto: require("./img/jeff.png"),
-                username: "joemcmover89",
-                password: "12345",
-                zipCode: "10044",
-                vehicle: "Large box truck",
-                payments: "Cash"
-            },
+            firstName: "",
+            lastName: "",
+            profilePhoto: require("./img/jeff.png"),
+            username: "",
+            password: "",
+            zipCode: "",
+            vehicle: "",
+            payments: "",
 
             // If the user changes anything, it will be stored here
-            updatedData: {
-                firstName: null,
-                lastName: null,
-                profilePhoto: null,
-                username: null,
-                password: null,
-                zipCode: null,
-                vehicle: null,
-                payments: null
-            }
+            newFirstName: null,
+            newLastName: null,
+            newProfilePhoto: null,
+            newUsername: null,
+            newPassword: null,
+            newZipCode: null,
+            newVehicle: null,
+            newPayments: null
         }
+    }
+
+    componentDidMount() {
+            fetch(api + "/profile", {
+            method: 'GET',
+                credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+            }
+        }).then(response => {
+            if (response.status === 200) {
+                this.setState({
+                        firstName: response.first_name,
+                        lastName: response.last_name,
+                        username: response.username,
+                        password: response.password,
+                        zipCode: response.zipcode,
+                        vehicle: response.vehicle,
+                        payments: response.payment,
+                });
+                validatedPhone = response["verified_phone"];
+
+            } else {
+                console.log(response);
+                throw new Error('Something went wrong on api server!');
+            }
+        });
     }
 
     render() {
@@ -1040,7 +1063,7 @@ class ProfileScreen extends React.Component {
                     <View style={styles.container}>
 
                         <View style={styles.grayHeader}>
-                            <Text style={styles.h1}>{this.state.data.firstName}&apos;s Profile</Text>
+                            <Text style={styles.h1}>{this.state.firstName}&apos;s Profile</Text>
                         </View>
 
                     <Text
@@ -1055,53 +1078,53 @@ class ProfileScreen extends React.Component {
                     >Phone not yet validated. Tap here to validate phone</Text>
                     <View style={{flex:0, flexDirection: "row", justifyContent: "space-between", width: "90%"}}>
                         <TouchableOpacity onPress={() => updateProfilePhoto()}>
-                            <Image source={this.state.data.profilePhoto} style={{marginTop: 20, width: 100, height: 100}}/>
+                            <Image source={this.state.profilePhoto} style={{marginTop: 20, width: 100, height: 100}}/>
                         </TouchableOpacity>
                         <View style={{width: "80%", alignItems: 'flex-start', marginLeft: 20}}>
                             <TextInput
                                 style={[styles.formField, {width: "79%"}]}
                                 placeholder="First Name"
-                                defaultValue={this.state.data.firstName}
-                                onChangeText={(text) => this.setState({updatedData: {firstName: text}})}
+                                defaultValue={this.state.firstName}
+                                onChangeText={(text) => this.setState({newFirstName: text})}
                             />
                              <TextInput
                                 style={[styles.formField, {width: "79%"}]}
                                 placeholder="Last Name"
-                                defaultValue={this.state.data.lastName}
-                                onChangeText={(text) => this.setState({updatedData: {lastName: text}})}
+                                defaultValue={this.state.lastName}
+                                onChangeText={(text) => this.setState({newLastName: text})}
                              />
                         </View>
                     </View>
                     <TextInput
                         style={styles.formField}
                         placeholder="Username"
-                        defaultValue={this.state.data.username}
-                        onChangeText={(text) => this.setState({updatedData: {username: text}})}
+                        defaultValue={this.state.username}
+                        onChangeText={(text) => this.setState({newUsername: text})}
                     />
                     <TextInput
                         style={styles.formField}
                         placeholder="Password"
                         secureTextEntry={true}
-                        defaultValue={this.state.data.password}
-                        onChangeText={(text) => this.setState({updatedData: {password: text}})}
+                        defaultValue={this.state.password}
+                        onChangeText={(text) => this.setState({newPassword: text})}
                     />
                     <TextInput
                         style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
                         placeholder="Zip Code"
-                        defaultValue={this.state.data.zipCode}
-                        onChangeText={(text) => this.setState({updatedData: {zipCode: text}})}
+                        defaultValue={this.state.zipCode}
+                        onChangeText={(text) => this.setState({newZipCode: text})}
                     />
                     <TextInput
                         style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
                         placeholder="Vehicle Type"
-                        defaultValue={this.state.data.vehicle}
-                        onChangeText={(text) => this.setState({updatedData: {vehicle: text}})}
+                        defaultValue={this.state.vehicle}
+                        onChangeText={(text) => this.setState({newVehicle: text})}
                     />
                     <TextInput
                         style={[styles.formField, {display: isMover ? 'flex' : 'none'}]}
                         placeholder="Payment Types Accepted"
-                        defaultValue={this.state.data.payments}
-                        onChangeText={(text) => this.setState({updatedData: {payments: text}})}
+                        defaultValue={this.state.payments}
+                        onChangeText={(text) => this.setState({newPayments: text})}
                     />
 
                     <View style={styles.grayFooter}>

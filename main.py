@@ -160,7 +160,10 @@ def update_profile():
     if session.get('user') is None:
         raise Unauthorized()
 
-    return jsonify(session.get('user'))
+    response = jsonify(session.get('user'))
+    response.status_code = 200
+    return response
+
 
 
 @app.route('/verify', methods = ['POST'])
