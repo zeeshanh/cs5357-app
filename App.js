@@ -811,7 +811,6 @@ class MoverList extends React.Component {
                     response = parseResponseBody(response);
                     this.setState({data: response});
                 } else {
-                    console.log(response);
                     throw new Error('Something went wrong on api server!');
                 }
             });
@@ -832,7 +831,6 @@ class MoverList extends React.Component {
                         response = parseResponseBody(response);
                         this.setState({data: response});
                     } else {
-                        console.log(response);
                         throw new Error('Something went wrong on api server!');
                     }
                 });
@@ -1133,7 +1131,6 @@ class ProfileScreen extends React.Component {
                 validatedPhone = response["verified_phone"];
 
             } else {
-                console.log(response);
                 throw new Error('Something went wrong on api server!');
             }
         });
@@ -1290,7 +1287,6 @@ class JobList extends React.Component {
                 }
                 this.setState({data: responsedata});
             } else {
-                console.log(response);
                 throw new Error('Something went wrong on api server!');
             }
         });
@@ -1374,12 +1370,15 @@ class JobDetailScreen extends React.Component {
         super(props);
         this.state = {
             jobId: this.props.navigation.state.params.jobId, // Data about the job, passed from JobListScreen
-            preAccept: "flex", // Style before the offer has been placed
-            postAccept: "none", // Style after the offer has been placed
-            offerAmount: null, // Input amount offered
-            offerTime: null, // Input start time offered
+            placed: false,
+            offerAmount: "", // Input amount offered
+            offerTime: "", // Input start time offered
             data: [],
-            otherOffers: "None yet!"
+            otherOffers: "None yet!",
+
+            timeError: "",
+            amountError: "",
+
         }
     }
 
@@ -1395,7 +1394,6 @@ class JobDetailScreen extends React.Component {
                 this.setState({data: response});
 
             } else {
-                console.log(response);
                 throw new Error('Something went wrong on api server!');
             }
         });
@@ -1415,13 +1413,12 @@ class JobDetailScreen extends React.Component {
                         offers.push(parseFloat(response[i]['price']));
                     }
                     if (offers.length > 1) {
-                        this.setState({otherOffers: "$" + Math.min(offers) + " - $" + Math.max(offers)});
+                        this.setState({otherOffers: "$" + Math.min.apply(Math, offers) + " - $" + Math.max.apply(Math, offers)});
                     } else {
                         this.setState({otherOffers: "$" + offers[0]})
                     }
                 }
             } else {
-                console.log(response);
                 throw new Error('Something went wrong on api server!');
             }
         });
@@ -1431,13 +1428,38 @@ class JobDetailScreen extends React.Component {
         const { navigate } = this.props.navigation;
 
         const placeOffer = () => {
-            // TODO: validate offer
+            this.setState({
+                // TODO: validate offer better
             //   - Amount must be numeric and less than requester's max amount
             //   - Start time must be between requester's start time and end time
-
-            // TODO: POST validated offer to DB
-
-            this.setState({preAccept: "none", postAccept: "flex"});
+                amountError: validatePrice("Offer", this.state.offerAmount),
+                timeError: validateStr("Time", this.state.offerTime, 10),
+            }, () => {
+                if (this.state.amountError == "" && this.state.timeError == "") {
+                    const offer = parseFloat(this.state.offerAmount);
+                    const validData = {
+                        "job_id": this.state.jobId,
+                        "price": offer,
+                        "start_time": this.state.offerTime,
+                    };
+                    fetch(api + "/addOffer", {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }, credentials: 'same-origin',
+                        body: JSON.stringify(validData),
+                    }).then(response => {
+                        if (response.status === 201) {
+                            this.setState({placed: true});
+                        } else {
+                            throw new Error('Something went wrong on api server!');
+                        }
+                    });
+                } else {
+                    return false;
+                }
+            });
         };
 
         return (
@@ -1494,21 +1516,22 @@ class JobDetailScreen extends React.Component {
 
                 </View>
 
-                <View style={[styles.grayFooter, {display: this.state.preAccept}]}>
+                <View style={[styles.grayFooter, {display: this.state.placed ? "none" : "flex"}]}>
                     <View style={{flex:0, flexDirection: "row", width: "90%",  padding: 10}}>
                         <View style={{width: "50%"}}>
                             <Text style={styles.jobDetailDesc}>Offer Amount ($)</Text>
                         <TextInput style={styles.formField}
                             placeholder="e.g. 100.00"
-                            onChange={(text) => this.setState({offerAmount: text})}
+                            onChangeText={(text) => this.setState({offerAmount: text})}
                         />
+                            <Text style={styles.errorText}>{this.state.amountError}</Text>
                         </View>
                         <View style={{width: "50%"}}>
                             <Text style={styles.jobDetailDesc}>Start Time</Text>
                         <TextInput style={styles.formField}
                             placeholder="e.g. 1:00pm"
-                            onChange={(text) => this.setState({offerTime: text})}
-                        />
+                            onChangeText={(text) => this.setState({offerTime: text})}
+                        /><Text style={styles.errorText}>{this.state.timeError}</Text>
                         </View>
                     </View>
 
@@ -1522,7 +1545,7 @@ class JobDetailScreen extends React.Component {
                     >View Other Jobs</Text>
                 </View>
 
-                <View style={[styles.grayFooter, {display: this.state.postAccept}]}>
+                <View style={[styles.grayFooter, {display: this.state.placed ? "flex" : "none"}]}>
                     <Text
                         style={{margin:10, fontSize:30, color: "#00796B"}}
                     >Offer placed!</Text>
