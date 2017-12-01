@@ -809,7 +809,14 @@ class MoverList extends React.Component {
             }).then(response => {
                 if (response.status === 200) {
                     response = parseResponseBody(response);
-                    this.setState({data: response});
+                    responsedata = [];
+                    for (var i = 0; i < response.length; i++) {
+                        responsedata.push({
+                            "key": i,
+                            "values": response[i]
+                        });
+                    }
+                    this.setState({data: responsedata});
                 } else {
                     throw new Error('Something went wrong on api server!');
                 }
@@ -850,10 +857,10 @@ class MoverList extends React.Component {
                 style={{width: "100%"}}
 
                 renderItem={({item}) => (
-                    <TouchableOpacity onPress={() => this.props.navigation.navigate("ViewMover", {moverInfo: item.values})}>
+                    <TouchableOpacity onPress={() => this.props.navigation.navigate("ViewMover", {offerData: item.values})}>
 
                     <View style={{width: "90%", paddingTop: 20, paddingBottom: 20, flexDirection: "row", alignItems: "flex-start"}}>
-                        <Image source={item.values.photo} style={{width: 80, height: 80}}/>
+                        { /* <Image source={item.values.photo} style={{width: 80, height: 80}}/> */ }
                         <View style={{marginLeft: 16}}>
                         <Text style={{fontSize: 16, fontWeight: "bold", color: "#333"}}>{item.values.name}</Text>
                             <Text>Offering ${item.values.price}</Text>
@@ -904,17 +911,34 @@ class MoverDetailScreen extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: this.props.navigation.state.params.moverInfo,
-            preAccept: "flex",
-            postAccept: "none"
+            offerData: this.props.navigation.state.params.offerData,
+            moverData: [],
+            accepted: false,
         }
+    }
+
+    componentDidMount() {
+        // Get mover's profile
+        // TODO: return the mover's profile data along with job data, so this request will not be necessary
+        fetch(api + "/profile/" + this.state.offerData.userId, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }, credentials: 'same-origin',
+        }).then(response => {
+            if (response.status === 200) {
+                response = parseResponseBody(response);
+                this.setState({moverData: response});
+            } else {
+                throw new Error('Something went wrong on api server!');
+            }
+        });
     }
 
     render() {
         const { navigate } = this.props.navigation;
 
         const acceptOffer = () => {
-            this.setState({preAccept: "none", postAccept: "flex"});
             // TODO: update DB to reflect offer is accepted
         };
 
@@ -922,7 +946,7 @@ class MoverDetailScreen extends React.Component {
 
             <View style={{flex: 1, justifyContent: "space-between"}}>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff"}}>
-                    <Image source={this.state.data.photo} style={{marginTop: 50, width: 100, height: 100}}/>
+                    { /* <Image source={this.state.data.photo} style={{marginTop: 50, width: 100, height: 100}}/> */ }
                     <Text style={{
                         height: 30,
                         width: "90%",
@@ -930,14 +954,16 @@ class MoverDetailScreen extends React.Component {
                         fontSize:20,
                         color: "#666",
                         textAlign: 'center'
-                    }}>{this.state.data.name}</Text>
-                    <Text style={{margin:20, fontSize:16}}>${this.state.data.price} | Start at {this.state.data.startTime.getHours()}:{this.state.data.startTime.getMinutes()} | {this.state.data.rating}/5 Stars</Text>
-                    <Text style={{margin:10, fontSize:16}}>Phone: {this.state.data.phone}</Text>
-                    <Text style={{margin:10, fontSize:16}}>Drives: {this.state.data.vehicle}</Text>
-                    <Text style={{margin:10, fontSize:16}}>Accepts: {this.state.data.payment}</Text>
+                    }}>{this.state.moverData.first_name + " " + this.state.moverData.last_name}</Text>
+                    <Text style={{margin:20, fontSize:16}}>${this.state.offerData.price} |
+                        Start at {this.state.offerData.start_time} |
+                        {this.state.data.rating}/5 Stars</Text>
+                    <Text style={{margin:10, fontSize:16}}>Phone: {this.state.moverData.phone}</Text>
+                    <Text style={{margin:10, fontSize:16}}>Drives: {this.state.moverData.vehicle}</Text>
+                    <Text style={{margin:10, fontSize:16}}>Accepts: {this.state.moverData.payment}</Text>
                 </View>
 
-                <View style={[styles.grayFooter, {display: this.state.preAccept}]}>
+                <View style={[styles.grayFooter, {display: this.state.accepted ? "none" : "flex"}]}>
                     <TouchableOpacity
                             onPress={() => acceptOffer() }
                             style={styles.bigButton}
@@ -949,7 +975,7 @@ class MoverDetailScreen extends React.Component {
                 </View>
 
 
-                <View style={[styles.grayFooter, {display: this.state.postAccept}]}>
+                <View style={[styles.grayFooter, {display: this.state.accepted ? "flex" : "none"}]}>
                     <Text
                         style={{margin:10, fontWeight: "bold", fontSize:20, color: "#00796B"}}
                     >Offer Accepted!</Text>

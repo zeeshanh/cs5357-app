@@ -165,7 +165,6 @@ def update_profile():
     return response
 
 
-
 @app.route('/verify', methods = ['POST'])
 def verifyCode():
     if session.get('user') is None:
@@ -406,6 +405,7 @@ def addOffer():
     # check that mongo didn't fail
     return Response(offerId,status=201)
 
+
 @app.route('/getOffers/<job_id>', methods = ['GET'])
 def getOffers(job_id):
     if session.get('user') is None:
@@ -418,6 +418,8 @@ def getOffers(job_id):
 
     if job["user"] != session.get('user')["_id"]["$oid"]:
         raise Unauthorized()
+
+    # TODO also return mover's profile info
 
     return Response(json_util.dumps(offers.find({'jobId': job_id})), 200)
 
