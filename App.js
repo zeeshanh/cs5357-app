@@ -1263,36 +1263,37 @@ class JobList extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: [
-                // TODO: GET available jobs from database
+            data: [],
+                // TODO:
                 // Jobs should be:
                 //   - Within a certain distance of the mover (e.g. 10mi)
                 //   - End time is before the current time
                 //   - Ordered by distance
-                { key: 0, values: {
-                    "id": 0,
-                    "description": "Moving some stuff",
-                    "maxPrice": 1,
-                    "startAddress": "[start addr]",
-                    "endAddress": "[end addr]",
-                    "startTime": "1pm",
-                    "endTime": "6pm",
-                    "photo": require("./img/boxes.jpg"),
-                    }
-                },
-                { key: 1, values: {
-                    "id": 0,
-                    "description": "Another job",
-                    "maxPrice": 1,
-                    "startAddress": "[start addr]",
-                    "endAddress": "[end addr]",
-                    "startTime": "1pm",
-                    "endTime": "6pm",
-                    "photo": require("./img/boxes.jpg"),
-                    }
-                },
-            ]
         }
+    }
+
+    componentDidMount() {
+        fetch(api + "/jobs", {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }, credentials: 'same-origin',
+        }).then(response => {
+            if (response.status === 200) {
+                response = parseResponseBody(response);
+                responsedata = [];
+                for (var i = 0; i < response.length; i++) {
+                    responsedata.push({
+                        "key": i,
+                        "values": response[i]
+                    });
+                }
+                this.setState({data: responsedata});
+            } else {
+                console.log(response);
+                throw new Error('Something went wrong on api server!');
+            }
+        });
     }
 
     render() {
@@ -1316,14 +1317,14 @@ class JobList extends React.Component {
 
                 renderItem={({item}) => (
 
-                    <TouchableOpacity onPress={() => this.props.navigation.navigate("JobDetail", {jobInfo: item.values})}>
+                    <TouchableOpacity onPress={() => this.props.navigation.navigate("JobDetail", {jobId: item.values._id["$oid"]})}>
 
                     <View style={{width: "90%", paddingTop: 20, paddingBottom: 20, flexDirection: "row", alignItems: "flex-start"}}>
-                        <Image source={item.values.photo} style={{maxWidth: 80, maxHeight: 60}}/>
+                        { /* <Image source={item.values.photo} style={{maxWidth: 80, maxHeight: 60}}/> */ }
                         <View style={{marginLeft: 10}}>
                         <Text style={{fontSize: 16, fontWeight: "bold", color: "#333"}}>{item.values.description}</Text>
-                            <Text>Max ${item.values.maxPrice}</Text>
-                            <Text>Start at {item.values.startTime}</Text>
+                            <Text>Max ${item.values.max_price}</Text>
+                            <Text>Start at {item.values.start_time}</Text>
                         </View>
                     </View>
 
@@ -1372,12 +1373,58 @@ class JobDetailScreen extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: this.props.navigation.state.params.jobInfo, // Data about the job, passed from JobListScreen
+            jobId: this.props.navigation.state.params.jobId, // Data about the job, passed from JobListScreen
             preAccept: "flex", // Style before the offer has been placed
             postAccept: "none", // Style after the offer has been placed
             offerAmount: null, // Input amount offered
             offerTime: null, // Input start time offered
+            data: [],
+            otherOffers: "None yet!"
         }
+    }
+
+    componentDidMount() {
+        fetch(api + "/jobs/" + this.state.jobId, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }, credentials: 'same-origin',
+        }).then(response => {
+            if (response.status === 200) {
+                response = parseResponseBody(response);
+                this.setState({data: response});
+
+            } else {
+                console.log(response);
+                throw new Error('Something went wrong on api server!');
+            }
+        });
+
+
+        fetch(api + "/getOffers/" + this.state.jobId, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }, credentials: 'same-origin',
+        }).then(response => {
+            if (response.status === 200) {
+                response = parseResponseBody(response);
+                var offers = [];
+                if (response.length > 0) {
+                    for (var i = 0; i < response.length; i++) {
+                        offers.push(parseFloat(response[i]['price']));
+                    }
+                    if (offers.length > 1) {
+                        this.setState({otherOffers: "$" + Math.min(offers) + " - $" + Math.max(offers)});
+                    } else {
+                        this.setState({otherOffers: "$" + offers[0]})
+                    }
+                }
+            } else {
+                console.log(response);
+                throw new Error('Something went wrong on api server!');
+            }
+        });
     }
 
     render() {
@@ -1399,7 +1446,7 @@ class JobDetailScreen extends React.Component {
 
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff"}}>
 
-                    <Image source={this.state.data.photo} style={{width: "100%", height:100}}/>
+                    { /*<Image source={this.state.data.photo} style={{width: "100%", height:100}}/> */ }
 
                     <View style={styles.jobDetailRow}>
 
@@ -1412,14 +1459,14 @@ class JobDetailScreen extends React.Component {
                         <View style={{width: "50%"}}>
 
                             <Text style={styles.jobDetailDesc}>Max Price</Text>
-                            <Text style={styles.jobDetailInfo}>{this.state.data.maxPrice}</Text>
+                            <Text style={styles.jobDetailInfo}>${this.state.data.max_price}</Text>
 
                         </View>
 
                         <View>
 
                             <Text style={styles.jobDetailDesc}>Other offers</Text>
-                            <Text style={styles.jobDetailInfo}>$x - $y</Text>
+                            <Text style={styles.jobDetailInfo}>{this.state.otherOffers}</Text>
 
                         </View>
                     </View>
@@ -1428,19 +1475,19 @@ class JobDetailScreen extends React.Component {
                         <View style={{width: "50%"}}>
 
                             <Text style={styles.jobDetailDesc}>Start time</Text>
-                            <Text style={styles.jobDetailInfo}>{this.state.data.startTime}</Text>
+                            <Text style={styles.jobDetailInfo}>{this.state.data.start_time}</Text>
 
                             <Text style={styles.jobDetailDesc}>End time</Text>
-                            <Text style={styles.jobDetailInfo}>{this.state.data.endTime}</Text>
+                            <Text style={styles.jobDetailInfo}>{this.state.data.end_time}</Text>
 
                         </View>
                         <View>
 
                             <Text style={styles.jobDetailDesc}>Start address</Text>
-                            <Text style={styles.jobDetailInfo}>{this.state.data.startAddress}</Text>
+                            <Text style={styles.jobDetailInfo}>{this.state.data.start_address}</Text>
 
                             <Text style={styles.jobDetailDesc}>End address</Text>
-                            <Text style={styles.jobDetailInfo}>{this.state.data.endAddress}</Text>
+                            <Text style={styles.jobDetailInfo}>{this.state.data.end_address}</Text>
 
                         </View>
                     </View>
