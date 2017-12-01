@@ -117,14 +117,18 @@ def add_new_user():
     except DuplicateKeyError:
         raise NotFound('User already exists')
 
-    # check that mongo didn't fail
+    user = users.find_one({'username': body.get('username')})
+    serializable_user_obj = json.loads(json_util.dumps(user))
+    session['user'] = serializable_user_obj
+
     return Response(status=201)
 
 
 @app.route('/profile', methods = ['PUT'])
 def update():
-    # if session.get('user') is None:
-    #     raise Unauthorized()
+    if session.get('user') is None:
+        raise Unauthorized()
+
     if not request.is_json:
         raise UnsupportedMediaType()
 
@@ -146,7 +150,7 @@ def update():
         else:
             raise BadRequest("invalid phone number")
 
-    user = users.find_one({'username': body.get('username')})
+    user = users.find_one({'username': session.get('user')['username']})
 
     serializable_user_obj = json.loads(json_util.dumps(user))
     session['user'] = serializable_user_obj
@@ -187,7 +191,7 @@ def verifyCode():
     if resp.content["success"]:
         users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'verified_phone':True}})
 
-        user = users.find_one({'username': body.get('username')})
+        user = users.find_one({'username': session.get('user')['username']})
 
         serializable_user_obj = json.loads(json_util.dumps(user))
         session['user'] = serializable_user_obj
