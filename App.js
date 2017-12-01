@@ -6,6 +6,7 @@ import DateTimePicker from 'react-native-modal-datetime-picker';
 var userType; // either mover or requester
 var validatedPhone = false; // keep track of whether phone has been validated
 var api = "http://127.0.0.1:8080";
+var jobId = null; // Current job id; null if no current job
 
 const sanitizeInput = (str) => {
     // https://stackoverflow.com/questions/822452/strip-html-from-text-javascript
@@ -656,8 +657,6 @@ class RequestFormScreen extends React.Component {
                         "description": this.state.description,
                     };
 
-                    console.log(validData);
-
                     // POST new job to database
 
                     fetch(api + "/jobs", {
@@ -669,6 +668,7 @@ class RequestFormScreen extends React.Component {
                         body: JSON.stringify(validData)
                     }).then(response => {
                         if (response.status === 200) {
+                            jobId = response._bodyInit;
                             this.setState({submitted: true});
                             navigate("MoverList");
                         } else {
@@ -795,37 +795,49 @@ class MoverList extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            // TODO: GET mover data
-            data: [ // Hardcoded for now
-                { key: 0, values: {
-                    "id": 0,
-                    "name": "Jeff McMover",
-                    "photo": require("./img/jeff.png"),
-                    "price": 400,
-                    "startTime": new Date("Tue Mar 24 2015 20:00:00 GMT-0400 (EDT)"),
-                    "rating": 4.9,
-                    "phone": "555-867-5309",
-                    "vehicle": "Large box truck",
-                    "payment": "Cash, Venmo"
-                    }
-                },
-                { key: 1, values: {
-                    "id": 1,
-                    "name": "Joe Moverson",
-                    "photo": require("./img/jeff.png"),
-                    "price": 425,
-                    "startTime": new Date("Tue Mar 24 2015 20:00:00 GMT-0400 (EDT)"),
-                    "rating": 4.8,
-                    "phone": "555-867-5311",
-                    "vehicle": "Small box truck",
-                    "payment": "Cash ONLY"
-                    }
+            data: []
+        }
+    }
+
+    componentDidMount() {
+        if (jobId) {
+            fetch(api + "/getOffers/" + jobId, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }, credentials: 'same-origin',
+            }).then(response => {
+                if (response.status === 200) {
+                    response = parseResponseBody(response);
+                    this.setState({data: response});
+                } else {
+                    console.log(response);
+                    throw new Error('Something went wrong on api server!');
                 }
-            ]
+            });
         }
     }
 
     render() {
+
+        const refreshList = () => {
+            if (jobId) {
+                fetch(api + "/getOffers/" + jobId, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    }, credentials: 'same-origin',
+                }).then(response => {
+                    if (response.status === 200) {
+                        response = parseResponseBody(response);
+                        this.setState({data: response});
+                    } else {
+                        console.log(response);
+                        throw new Error('Something went wrong on api server!');
+                    }
+                });
+            }
+        };
 
         return(
             <View style={styles.containerTop}>
@@ -856,7 +868,11 @@ class MoverList extends React.Component {
             />
                 </ScrollView>
                 <View style={[styles.grayFooter, {height: 100}]}>
+                    <TouchableOpacity
+                        onPress={() => refreshList()}
+                    >
                         <Text style={{height: 40, margin:10}}>Refresh List</Text>
+                    </TouchableOpacity>
                     </View>
 
             </View>
