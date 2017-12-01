@@ -161,7 +161,7 @@ def update():
     ##TODO: implement update method
 
 @app.route('/profile', methods = ['GET'])
-def update_profile():
+def get_profile():
     if session.get('user') is None:
         raise Unauthorized()
 
@@ -420,12 +420,15 @@ def getOffers(job_id):
     if job is None:
         raise BadRequest("invalid Job ID")
 
-    if job["user"] != session.get('user')["_id"]["$oid"]:
-        raise Unauthorized()
+    #if job["user"] != session.get('user')["_id"]["$oid"]:
+     #   raise Unauthorized()
 
-    # TODO also return mover's profile info
+    user = users.find_one({"_id": ObjectId(job["user"])})
+    offer = offers.find_one({'jobId': job_id})
 
-    return Response(json_util.dumps(offers.find({'jobId': job_id})), 200)
+    offer.update({"user": user})
+
+    return Response(json_util.dumps(offer), 200)
 
 
 
