@@ -47,6 +47,12 @@ const getPhoneFromInput = (input) => {
     return "";
 };
 
+// Given input, returns the response body as JSON
+// There may be a better way to do this
+const parseResponseBody = (response) => {
+    return JSON.parse(JSON.parse(JSON.stringify(response._bodyInit)));
+};
+
 /*--Entry screens: visible to movers and requesters--*/
 // 1. InitialOptionScreen: Choose to login or register as mover or requester
 // 2. RegisterScreen: Register an account
@@ -1015,12 +1021,12 @@ class ProfileScreen extends React.Component {
     componentDidMount() {
             fetch(api + "/profile", {
             method: 'GET',
-                credentials: 'same-origin',
             headers: {
                 'Accept': 'application/json',
-            }
+            }, credentials: 'same-origin',
         }).then(response => {
             if (response.status === 200) {
+                response = parseResponseBody(response);
                 this.setState({
                         firstName: response.first_name,
                         lastName: response.last_name,

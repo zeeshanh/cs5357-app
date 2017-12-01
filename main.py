@@ -13,6 +13,7 @@ from bson.objectid import ObjectId
 import datetime
 #from mongoengine import *
 
+
 # This defines a Flask application
 app = Flask(__name__)
 
@@ -161,7 +162,6 @@ def update_profile():
         raise Unauthorized()
 
     response = jsonify(session.get('user'))
-    response.status_code = 200
     return response
 
 
