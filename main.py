@@ -112,7 +112,7 @@ def add_new_user():
                 "vehicle": body.get("vehicle"),
                 "verified_phone": False}    
 
-    if users.find_one("username": body.get("username")):
+    if users.find_one({"username": body.get("username")}):
         raise NotFound('Username already exists')
     else:
         users.insert_one(newUser)
