@@ -112,10 +112,10 @@ def add_new_user():
                 "vehicle": body.get("vehicle"),
                 "verified_phone": False}    
 
-    try:
+    if users.find_one("username": body.get("username")):
+        raise NotFound('Username already exists')
+    else:
         users.insert_one(newUser)
-    except DuplicateKeyError:
-        raise NotFound('User already exists')
 
     user = users.find_one({'username': body.get('username')})
     serializable_user_obj = json.loads(json_util.dumps(user))
@@ -149,6 +149,26 @@ def update():
 
         else:
             raise BadRequest("invalid phone number")
+
+
+    if body.get("first_name"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'first_name':body.get("first_name")}})
+
+    if body.get("last_name"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'last_name':body.get("last_name")}})
+
+    if body.get("zipcode"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'zipcode':body.get("zipcode")}})
+
+    if body.get("password"):
+        password_hash = security.generate_password_hash(body.get('password'))
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'password':password_hash}})
+
+    if body.get("payment"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'payment':body.get("payment")}})
+
+    if body.get("vehicle"):
+        users.update_one({'_id':ObjectId(session.get('user')["_id"]["$oid"])},{'$set':{'vehicle':body.get("vehicle")}})
 
     user = users.find_one({'username': session.get('user')['username']})
 
