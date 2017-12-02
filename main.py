@@ -240,7 +240,7 @@ def login():
     if body.get('password') is None:
         raise BadRequest('missing password property')
 
-    user = users.find_one({'username': body.get('username')})
+    user = users.find_one({'username': body.get('username'), "type": body.get("type")})
 
     if user is None:
         session.clear()
