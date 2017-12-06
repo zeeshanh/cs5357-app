@@ -11,11 +11,15 @@ from authy.api import AuthyApiClient
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 import datetime
+from flask_cors import CORS
+from flask_restful_swagger_2 import Api, swagger
 #from mongoengine import *
 
 
 # This defines a Flask application
 app = Flask(__name__)
+CORS(app)
+api = Api(app, api_version='0.0', api_spec_url='/api/swagger')
 
 # This code here converts Flask's default (HTML) errors to Json errors.
 # This is helpful because HTML breaks clients that are expecting JSON
@@ -58,13 +62,12 @@ users = db['users']
 
 @app.route('/profile', methods=['POST'])
 def add_new_user():
+
     """
     This method is used to register a new user.
     :return:
     """
     # Bounce any requests that are not JSON type requests
-    if not request.is_json:
-        raise UnsupportedMediaType()
 
     # Check that the request body has `username` and `password` properties
     body = request.get_json()
@@ -444,7 +447,7 @@ def getOffers(job_id):
      #   raise Unauthorized()
 
     user = users.find_one({"_id": ObjectId(job["user"])})
-    offer = offers.find_one({'jobId': job_id})
+    offer = offers.find({'jobId': job_id})
 
     offer.update({"user": user})
 
